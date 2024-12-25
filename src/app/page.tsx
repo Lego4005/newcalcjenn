@@ -1,34 +1,33 @@
 'use client'
 
-import { Button } from "@nextui-org/react"
-import { NetSellerCalculator } from "@/components/NetSellerCalculator"
+import { Suspense } from "react"
+import { PropertyCalculator } from "@/components/RealEstateCalculator/PropertyCalculator"
 import { CalculatorTools } from "@/components/CalculatorTools"
+import { PropertyHero } from "@/components/RealEstateCalculator/PropertyHero"
 
 export default function Home() {
   return (
-    <div className="container mx-auto p-4">
-      <div className="flex flex-col gap-2 mb-8">
-        <div className="flex justify-between items-center">
-          <h1 className="text-2xl font-semibold">Net Seller Sheet Calculator</h1>
-          <Button 
-            color="primary"
-            variant="flat"
-            startContent={
-              <span className="text-lg">📄</span>
-            }
-          >
-            Generate PDF
-          </Button>
+    <div className="w-full">
+      <Suspense fallback={
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <div className="animate-pulse text-default-500">Loading...</div>
         </div>
-        <p className="text-default-500">
-          Calculate your estimated proceeds from selling your property
-        </p>
-      </div>
-      
-      <div className="space-y-8">
-        <NetSellerCalculator />
-        <CalculatorTools />
-      </div>
+      }>
+        <div className="space-y-6">
+          <PropertyHero
+            image="https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop"
+            address="123 Main St, Anytown, USA"
+            price="$450,000"
+            beds={3}
+            baths={2}
+            status="Active"
+          />
+          
+          <CalculatorTools />
+          
+          <PropertyCalculator />
+        </div>
+      </Suspense>
     </div>
   )
 }

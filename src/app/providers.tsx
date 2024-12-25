@@ -1,15 +1,27 @@
 'use client'
 
-import { NextUIProvider } from '@nextui-org/react'
-import { useRouter } from 'next/navigation'
+import { NextUIProvider } from "@nextui-org/react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
+import { useEffect, useState } from "react"
 
 export function Providers({ children }: { children: React.ReactNode }) {
-  const router = useRouter()
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return null
+  }
 
   return (
-    <NextUIProvider navigate={router.push}>
-      <NextThemesProvider attribute="class" defaultTheme="system" enableSystem>
+    <NextUIProvider>
+      <NextThemesProvider
+        attribute="class"
+        defaultTheme="light"
+        enableSystem={false}
+      >
         {children}
       </NextThemesProvider>
     </NextUIProvider>

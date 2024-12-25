@@ -7,7 +7,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Roca Titles Dashboard",
+  title: "Roca Title Dashboard",
   description: "Property data and calculator dashboard",
 };
 
@@ -17,8 +17,9 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <head />
+      <body className={`${inter.className} text-foreground bg-background`} suppressHydrationWarning>
         <Providers>
           <AppLayout>
             {children}
