@@ -1,0 +1,49 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --content1: #ffffff;
+  --content2: #f4f4f5;
+  --content3: #e4e4e7;
+  --content4: #d4d4d8;
+}
+
+[data-theme="dark"] {
+  --background: #09090b;
+  --foreground: #fafafa;
+  --content1: #18181b;
+  --content2: #27272a;
+  --content3: #3f3f46;
+  --content4: #52525b;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}
+
+/* Ensure proper contrast for inputs */
+input::placeholder {
+  color: var(--content4);
+}
+
+/* Ensure proper contrast for cards */
+.dark .bg-content1 {
+  background-color: var(--content1);
+}
+
+.dark .bg-content2 {
+  background-color: var(--content2);
+}
+
+/* Ensure proper contrast for text */
+.dark .text-default-500 {
+  color: #a1a1aa;
+}
+
+.dark .text-default-700 {
+  color: #fafafa;
+}
