@@ -1,25 +1,33 @@
 # Roca Titles Dashboard
 
-A modern web application for real estate professionals to manage properties and calculate net seller proceeds.
+A modern web application for real estate professionals to manage properties and calculate real estate metrics specifically for Roca Titles calculate net seller proceeds.
 
 ## Project Structure
 
 ```
 src/
 ├── app/
-│   ├── layout.tsx        # Root layout with providers and app shell
-│   ├── page.tsx          # Home page with net seller calculator
-│   ├── providers.tsx     # NextUI providers setup
+│   ├── layout.tsx        # Root layout with providers
+│   ├── page.tsx          # Home page with property dashboard
+│   ├── providers.tsx     # Theme and NextUI providers
 │   └── globals.css       # Global styles
 │
 ├── components/
 │   ├── layout/
-│   │   └── AppLayout.tsx # Main layout with header and sidebar
+│   │   ├── Sidebar/     # Modular sidebar components
+│   │   │   ├── index.tsx       # Main sidebar container
+│   │   │   ├── Navigation.tsx  # Navigation menu
+│   │   │   └── UserSection.tsx # User profile and actions
+│   │   └── AppLayout.tsx # Main layout wrapper
 │   │
-│   ├── NetSellerCalculator.tsx  # Net seller sheet calculator
-│   ├── CalculatorTools.tsx      # Bottom calculator tool buttons
-│   ├── PropertyContext.tsx      # Property selection in sidebar
-│   └── ChatPanel.tsx           # AI chat assistant panel
+│   ├── RealEstateCalculator/
+│   │   ├── PropertyCalculator.tsx  # Main calculator component
+│   │   ├── PropertyHero.tsx        # Property header with image
+│   │   ├── CommandMenu.tsx         # Quick actions menu
+│   │   └── StatsCard.tsx           # Property statistics cards
+│   │
+│   ├── PropertyContext.tsx  # Property selection and management
+│   └── CalculatorTools.tsx  # Calculator tool selection
 ```
 
 ## Features
@@ -27,86 +35,64 @@ src/
 ### Layout Components
 
 #### AppLayout
-- Modern header with search and notifications
-- Collapsible sidebar (toggles between full and compact modes)
-- Property context for quick property switching
-- Navigation menu with icons
-- User profile and settings
-- Mobile responsive design
+- Clean, modern interface with command menu
+- Smart collapsible sidebar (80px collapsed, 288px expanded)
+- Integrated property context
+- Responsive design with blur effects
+- Dark mode support
 
-#### Property Context
-- List of properties with status indicators
-- Quick property switching
-- Property details display
-- Add new property functionality
+#### Sidebar
+- Compact and full-width modes
+- Centered navigation with tooltips
+- Property quick-access with previews
+- User section with theme toggle
+- Status-aware property cards
 
-### Calculator Components
+### Real Estate Calculator
 
-#### NetSellerCalculator
-- Input fields for sale price, mortgages, and taxes
-- Real-time calculations
-- Summary cards with percentages
-- Estimated net proceeds display
+#### Property Dashboard
+- Property hero section with image
+- Key statistics cards
+- Monthly payment breakdown
+- ROI calculations
 
-#### CalculatorTools
-- Quick access to different calculators
-- Visual tool selection
-- Status indicators for active tool
+#### Command Menu (NextUI Pro)
+- Quick actions and navigation
+- Property management
+- Team collaboration
+- Keyboard shortcuts
 
-### Chat Integration
-- AI assistant chat panel
-- Message history
-- Real-time responses
-- Document sharing capabilities
+### NextUI Pro Components Usage
+
+Currently using:
+- `CommandMenu` - For quick actions and navigation
+- `Avatar` - For user and property images
+- `Card` - For property cards and statistics
+- `Button` - For actions and navigation
+- `Tooltip` - For compact mode information
+
+Potential Pro components to integrate:
+- `Table` - For property comparisons
+- `Modal` - For detailed property views
+- `Accordion` - For grouped property information
+- `Tabs` - For different calculator views
+- `Select` - For enhanced dropdowns
+
+### Standard NextUI Components
+When Pro components aren't available, we use enhanced standard components:
+- Custom-styled buttons with hover effects
+- Cards with gradient overlays
+- Tooltips with rich content
+- Responsive layout components
 
 ## Technology Stack
 
 - **Framework**: Next.js 14 with App Router
-- **UI Library**: NextUI
+- **UI Library**: NextUI + NextUI Pro
 - **Styling**: Tailwind CSS
 - **Icons**: Lucide React
 - **State Management**: React Hooks
-
-## Component Design
-
-### Header Navigation
-The header uses NextUI's `Navbar` component with:
-- Responsive navigation menu
-- Search functionality
-- Notification system
-- User profile dropdown
-
-### Sidebar
-Implements a collapsible sidebar with:
-- Property context section
-- Navigation menu
-- Compact mode toggle
-- Tooltips for compact view
-
-### Calculator
-The net seller calculator features:
-- Input validation
-- Real-time calculations
-- Percentage indicators
-- PDF generation capability
-
-## Usage
-
-### Property Management
-1. Select properties from the sidebar
-2. View property details
-3. Switch between properties to update calculations
-
-### Net Seller Calculator
-1. Enter property sale price
-2. Input mortgage payoff amounts
-3. Add property tax information
-4. View real-time net proceeds calculation
-
-### Calculator Tools
-- Access different calculators through the bottom toolbar
-- Each calculator has its own specialized function
-- Tools are context-aware based on selected property
+- **Theme**: Dark/Light mode with system preference
 
 ## Development
 
@@ -114,6 +100,7 @@ The net seller calculator features:
 ```bash
 Node.js 18+
 npm or yarn
+NextUI Pro license
 ```
 
 ### Installation
@@ -134,34 +121,41 @@ npm start
 
 ## Styling
 
-The project uses a combination of:
-- NextUI components
+The project implements:
+- NextUI theming system
 - Tailwind CSS for custom styling
 - CSS modules for component-specific styles
+- Responsive design patterns
+- Dark mode with proper color handling
 
 ### Theme Configuration
 - Custom color palette in `tailwind.config.ts`
-- Dark mode support
+- Dark/Light mode support
+- Blur effects and gradients
 - Responsive breakpoints
 
 ## Future Enhancements
 
-1. **Property Management**
-   - Property history tracking
-   - Multiple property comparison
-   - Batch calculations
+1. **UI/UX Improvements**
+   - Enhanced property cards
+   - Advanced filtering
+   - Better mobile experience
+   - Animation refinements
 
 2. **Calculator Features**
-   - More calculator types
-   - Save calculations as templates
-   - Batch processing
+   - More calculation types
+   - Save/load configurations
+   - Comparison tools
+   - Export options
 
 3. **Integration**
-   - API integration for property data
+   - MLS API integration
    - Document generation
-   - Export functionality
+   - Team collaboration
+   - Real-time updates
 
-4. **User Experience**
-   - Enhanced mobile experience
-   - Offline support
-   - More customization options
+4. **Property Management**
+   - Advanced search
+   - Bulk operations
+   - History tracking
+   - Analytics dashboard
