@@ -1,25 +1,16 @@
-import { useState } from 'react';
-import { Card, CardBody, CardHeader, Tab, Tabs, Button, Spinner } from '@nextui-org/react';
-import { Share2, Download, Home, Calculator, History, Plus } from 'lucide-react';
+import { useState, useEffect, useCallback } from 'react';
+import { Card, CardBody, CardHeader, Tab, Tabs, Button, Spinner, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Skeleton, Chip } from '@nextui-org/react';
+import { Share2, Download, Home, Calculator, History, Plus, Search, Info, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import SellerClosingCalculator from '../SellerClosingCosts/SellerClosingCalculator';
 import PropertyPreview from './PropertyPreview';
 import PropertyKPIs from './PropertyKPIs';
 import PropertyHistory from './PropertyHistory';
-
-export type Property = {
-  id: string;
-  address: string;
-  price: number;
-  beds: number;
-  baths: number;
-  sqft: number;
-  yearBuilt: number;
-  lotSize: number;
-  propertyType: string;
-  status: 'Active' | 'Pending' | 'Sold';
-  images: string[];
-};
+import AddressAutocomplete from './AddressAutocomplete';
+import PropertyWizard from '../PropertyWizard/PropertyWizard';
+import type { Property } from '@/types/property';
+import type { AddressFeature } from '@/types/address';
+import { getProperty, getTransaction, saveTransaction } from '@/lib/storage';
 
 const tabVariants = {
   enter: (direction: number) => ({
@@ -38,27 +29,192 @@ const tabVariants = {
 
 export default function PropertyDashboard() {
   const [selectedTab, setSelectedTab] = useState('calculator');
-  const [property, setProperty] = useState<Property | null>(
-    // Mock property data - replace with Supabase data
-    {
-      id: '1',
-      address: '123 Main St, Anytown, USA',
-      price: 450000,
-      beds: 3,
-      baths: 2,
-      sqft: 2000,
-      yearBuilt: 2010,
-      lotSize: 5000,
-      propertyType: 'Single Family',
-      status: 'Active',
-      images: [
-        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2075&auto=format&fit=crop',
-      ],
-    }
-  );
+  const [property, setProperty] = useState<Property | null>(null);
   const [slideDirection, setSlideDirection] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [isDemoMode, setIsDemoMode] = useState(false);
+  const [showDemoModal, setShowDemoModal] = useState(false);
+  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [address, setAddress] = useState('');
+  const [fetchError, setFetchError] = useState<string | null>(null);
+  const [isPropertyConfirmed, setIsPropertyConfirmed] = useState(false);
+  const [pendingTransaction, setPendingTransaction] = useState<any>(null);
+
+  // Handle transaction updates
+  useEffect(() => {
+    if (pendingTransaction && property?.id) {
+      saveTransaction(property.id, pendingTransaction);
+      setProperty(prev => ({
+        ...prev!,
+        transactionDetails: pendingTransaction
+      }));
+      setPendingTransaction(null);
+    }
+  }, [pendingTransaction, property?.id]);
+
+  const handleTransactionUpdate = useCallback((details: any) => {
+    if (details === null) {
+      // Handle search mode
+      setShowAddressModal(true);
+    } else if (details.salePrice === 450000) {
+      // Handle demo mode
+      handleDemoMode();
+    } else {
+      // Handle normal transaction updates
+      setPendingTransaction(details);
+    }
+  }, []);
+
+  // Load property from URL parameter
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const propertyId = params.get('propertyId');
+    
+    if (propertyId) {
+      const savedProperty = getProperty(propertyId);
+      if (savedProperty) {
+        setProperty(savedProperty);
+        setIsPropertyConfirmed(true);
+        
+        // Load associated transaction data
+        const transaction = getTransaction(propertyId);
+        if (transaction) {
+          // Update property with transaction details
+          setProperty(prev => ({
+            ...prev!,
+            transactionDetails: transaction
+          }));
+        }
+      }
+    }
+  }, []);
+
+  // Update URL when property changes
+  useEffect(() => {
+    if (property?.id && isPropertyConfirmed) {
+      const url = new URL(window.location.href);
+      url.searchParams.set('propertyId', property.id);
+      window.history.replaceState({}, '', url.toString());
+    }
+  }, [property?.id, isPropertyConfirmed]);
+
+  // Demo property data
+  const demoProperty: Property = {
+    id: 'demo-1',
+    address: '4005 Bayshore Blvd, Tampa, FL 33611',
+    price: 4500000,
+    beds: 5,
+    baths: 4,
+    sqft: 7170,
+    yearBuilt: 2016,
+    lotSize: 12000,
+    propertyType: 'Single Family',
+    status: 'Active',
+    images: [
+      '/demo-property.jpg', // Make sure to add a nice waterfront property image
+    ],
+    marketValue: 465000,
+    pricePerSqft: 628,
+    daysOnMarket: 15,
+    source: {
+      name: 'Demo Data',
+      fetchDate: new Date().toISOString(),
+    },
+  };
+
+  const handleDemoMode = () => {
+    setIsLoading(true);
+    setTimeout(() => {
+      setProperty(demoProperty);
+      
+      // Set demo transaction details
+      const demoTransaction = {
+        salePrice: 4500000,
+        mortgageBalance: 2500000,
+        annualTaxes: 50000,
+        hoaFees: 2000,
+        hoaEstoppelFee: 250,
+        buyerAgentCommission: 3,
+        sellerAgentCommission: 3,
+        closingDate: new Date().toISOString().split('T')[0],
+        hasHOA: true,
+        settlementFee: 595,
+        titleSearch: 175,
+        municipalLienSearch: 175,
+        docStamps: 31500, // $0.70 per $100 of sale price
+        titleInsurance: 22875, // Based on FL title insurance rates
+        hasPriorTitlePolicy: false,
+        priorTitleAmount: 0,
+        costResponsibility: {
+          settlementFee: 'seller',
+          titleSearch: 'seller',
+          municipalLienSearch: 'seller',
+          titleInsurance: 'seller',
+          docStamps: 'seller',
+        },
+      };
+
+      // Save the transaction details
+      saveTransaction(demoProperty.id, demoTransaction);
+      
+      // Update property with transaction details
+      setProperty(prev => ({
+        ...prev!,
+        transactionDetails: demoTransaction
+      }));
+
+      setIsDemoMode(true);
+      setIsPropertyConfirmed(true);
+      setShowDemoModal(false);
+      setIsLoading(false);
+    }, 1500);
+  };
+
+  const exitDemoMode = () => {
+    setProperty(null);
+    setIsDemoMode(false);
+    setIsPropertyConfirmed(false);
+    // Clear any transaction details
+    setPendingTransaction(null);
+    // Reset URL
+    const url = new URL(window.location.href);
+    url.searchParams.delete('propertyId');
+    window.history.replaceState({}, '', url.toString());
+  };
+
+  const handleAddressSearch = async (feature: AddressFeature) => {
+    setIsLoading(true);
+    setFetchError(null);
+    
+    try {
+      // Fetch property data from our API
+      const response = await fetch('/api/properties');
+      if (!response.ok) {
+        throw new Error('Failed to fetch property data');
+      }
+      
+      const properties = await response.json();
+      
+      // For now, we'll use the first property as a mock match for the searched address
+      const mockProperty: Property = {
+        ...properties[0],
+        id: Date.now().toString(),
+        address: feature.place_name,
+        source: {
+          name: 'Mapbox Geocoding',
+          fetchDate: new Date().toISOString(),
+        },
+      };
+
+      setProperty(mockProperty);
+      setIsPropertyConfirmed(false);
+      setShowAddressModal(false);
+    } catch (error) {
+      setFetchError('Unable to fetch property data. Please try again or enter details manually.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const handleTabChange = (key: string) => {
     setSlideDirection(key > selectedTab ? 1 : -1);
@@ -75,12 +231,28 @@ export default function PropertyDashboard() {
     console.log('Download clicked');
   };
 
-  const handleAddProperty = async () => {
-    setIsLoading(true);
-    // Simulate loading
-    await new Promise(resolve => setTimeout(resolve, 1500));
+  const handleAddProperty = () => {
+    setShowAddressModal(true);
+  };
+
+  const handlePropertyConfirm = (confirmedProperty: Property) => {
+    // Ensure we keep all the property details and transaction data
+    setProperty({
+      ...confirmedProperty,
+      source: {
+        name: 'User',
+        fetchDate: new Date().toISOString()
+      }
+    });
+    setIsPropertyConfirmed(true);
+    // Reset the wizard state
+    setShowAddressModal(false);
+  };
+
+  const handleWizardCancel = () => {
     setProperty(null);
-    setIsLoading(false);
+    setIsPropertyConfirmed(false);
+    setShowAddressModal(false);
   };
 
   const LoadingSpinner = () => (
@@ -100,156 +272,100 @@ export default function PropertyDashboard() {
     </motion.div>
   );
 
+  const PropertySkeletonLoader = () => (
+    <Card className="w-full">
+      <CardBody className="space-y-3">
+        <Skeleton className="rounded-lg">
+          <div className="h-[200px] rounded-lg bg-default-300"></div>
+        </Skeleton>
+        <div className="space-y-3">
+          <Skeleton className="w-3/5 rounded-lg">
+            <div className="h-8 rounded-lg bg-default-200"></div>
+          </Skeleton>
+          <Skeleton className="w-4/5 rounded-lg">
+            <div className="h-4 rounded-lg bg-default-200"></div>
+          </Skeleton>
+        </div>
+        <div className="grid grid-cols-2 gap-4">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} className="rounded-lg">
+              <div className="h-12 rounded-lg bg-default-300"></div>
+            </Skeleton>
+          ))}
+        </div>
+      </CardBody>
+    </Card>
+  );
+
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full">
-      {/* Left Column - Property Preview & KPIs */}
-      <motion.div 
-        className="xl:col-span-4 space-y-6"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        {property ? (
-          <>
+    <>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full">
+        {/* Left Column - Property Preview */}
+        {property && isPropertyConfirmed && (
+          <div className="xl:col-span-4 space-y-6">
+            {isDemoMode && (
+              <Button
+                color="danger"
+                variant="flat"
+                onPress={exitDemoMode}
+                className="w-full mb-4"
+              >
+                Exit Demo Mode
+              </Button>
+            )}
             <PropertyPreview property={property} />
             <PropertyKPIs property={property} />
-          </>
-        ) : (
-          <Card className="w-full h-[400px] flex items-center justify-center relative overflow-hidden">
-            <AnimatePresence>
-              {isLoading && <LoadingSpinner />}
-            </AnimatePresence>
-            <CardBody className="text-center">
-              <motion.div 
-                className="space-y-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <motion.div 
-                  className="bg-default-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center"
-                  whileHover={{ scale: 1.1, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Plus className="w-8 h-8 text-default-500" />
-                </motion.div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">No Property Selected</h3>
-                  <p className="text-default-500 mb-4">
-                    Add a property to start calculating closing costs and analyzing market data.
-                  </p>
-                  <Button
-                    color="primary"
-                    startContent={<Plus className="w-4 h-4" />}
-                    onPress={handleAddProperty}
-                    isLoading={isLoading}
-                  >
-                    Add Property
-                  </Button>
-                </div>
-              </motion.div>
-            </CardBody>
-          </Card>
+          </div>
         )}
-      </motion.div>
 
-      {/* Right Column - Calculator & Tools */}
-      <motion.div 
-        className="xl:col-span-8"
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
+        {/* Right Column - Calculator */}
+        <div className={property && isPropertyConfirmed ? "xl:col-span-8" : "xl:col-span-12"}>
+          <SellerClosingCalculator
+            property={property}
+            transactionDetails={property?.transactionDetails}
+            onTransactionUpdate={handleTransactionUpdate}
+          />
+        </div>
+      </div>
+
+      {/* Property Wizard Modal */}
+      <Modal
+        isOpen={showAddressModal}
+        onOpenChange={setShowAddressModal}
+        size="5xl"
+        isDismissable={false}
+        hideCloseButton
       >
-        <Card className="w-full">
-          <CardHeader className="flex flex-col gap-2">
-            <div className="flex justify-between items-center w-full">
-              <h2 className="text-2xl font-bold">Property Analysis</h2>
-              <div className="flex gap-2">
-                <Button
-                  variant="flat"
-                  startContent={<Share2 className="w-4 h-4" />}
-                  onPress={handleShare}
-                >
-                  Share
-                </Button>
-                <Button
-                  variant="flat"
-                  startContent={<Download className="w-4 h-4" />}
-                  onPress={handleDownload}
-                >
-                  Export
-                </Button>
-              </div>
-            </div>
+        <ModalContent>
+          {() => (
+            <PropertyWizard
+              property={property || { id: '', address: '', status: 'Active' }}
+              onConfirm={handlePropertyConfirm}
+              onCancel={handleWizardCancel}
+            />
+          )}
+        </ModalContent>
+      </Modal>
 
-            <Tabs
-              selectedKey={selectedTab}
-              onSelectionChange={(key) => handleTabChange(key.toString())}
-              aria-label="Property Analysis Options"
-              color="primary"
-              variant="underlined"
-              classNames={{
-                tabList: "gap-6",
-                cursor: "w-full",
-              }}
-            >
-              <Tab
-                key="calculator"
-                title={
-                  <div className="flex items-center gap-2">
-                    <Calculator className="w-4 h-4" />
-                    <span>Closing Costs</span>
-                  </div>
-                }
-              />
-              <Tab
-                key="property"
-                title={
-                  <div className="flex items-center gap-2">
-                    <Home className="w-4 h-4" />
-                    <span>Property Details</span>
-                  </div>
-                }
-              />
-              <Tab
-                key="history"
-                title={
-                  <div className="flex items-center gap-2">
-                    <History className="w-4 h-4" />
-                    <span>History</span>
-                  </div>
-                }
-              />
-            </Tabs>
-          </CardHeader>
+      {/* Demo Mode Modal */}
+      <Modal isOpen={showDemoModal} onOpenChange={setShowDemoModal}>
+        <ModalContent>
+          {(onClose) => (
+            <>
+              <ModalHeader>Try Demo Mode</ModalHeader>
+              <ModalBody>
+                <p>Would you like to try the calculator with a sample luxury waterfront property?</p>
+              </ModalBody>
+              <ModalFooter>
+                <Button variant="flat" onPress={onClose}>Cancel</Button>
+                <Button color="primary" onPress={handleDemoMode}>Start Demo</Button>
+              </ModalFooter>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
 
-          <CardBody>
-            <AnimatePresence mode="wait" custom={slideDirection}>
-              <motion.div
-                key={selectedTab}
-                custom={slideDirection}
-                variants={tabVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 }
-                }}
-              >
-                {selectedTab === 'calculator' && property && <SellerClosingCalculator />}
-                {selectedTab === 'property' && property && <div>Property Details Content</div>}
-                {selectedTab === 'history' && property && <PropertyHistory property={property} />}
-                {!property && (
-                  <div className="text-center py-8 text-default-500">
-                    Please add a property to view this section
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </CardBody>
-        </Card>
-      </motion.div>
-    </div>
+      {isLoading && <LoadingSpinner />}
+    </>
   );
 } 
