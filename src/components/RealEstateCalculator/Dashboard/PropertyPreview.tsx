@@ -1,5 +1,5 @@
-import { Card, CardBody, CardHeader, Chip, Image } from '@nextui-org/react';
-import { Bed, Bath, Square, Calendar, Map } from 'lucide-react';
+import { Card, CardBody, CardHeader, Chip, Image, Tooltip } from '@nextui-org/react';
+import { Bed, Bath, Square, Calendar, Map, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Property } from './PropertyDashboard';
 
@@ -21,6 +21,16 @@ export default function PropertyPreview({ property }: PropertyPreviewProps) {
     return new Intl.NumberFormat('en-US').format(num);
   };
 
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  };
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -40,26 +50,49 @@ export default function PropertyPreview({ property }: PropertyPreviewProps) {
             className="z-0 w-full h-[200px] object-cover transition-transform duration-300 group-hover:scale-110"
             src={property.images[0]}
           />
-          <motion.div
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            <Chip
-              className="absolute top-2 right-2"
-              color={
-                property.status === 'Active'
-                  ? 'success'
-                  : property.status === 'Pending'
-                  ? 'warning'
-                  : 'default'
-              }
-              size="sm"
-              variant="flat"
+          <div className="absolute top-2 right-2 flex gap-2">
+            <motion.div
+              initial={{ opacity: 0, y: -20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
             >
-              {property.status}
-            </Chip>
-          </motion.div>
+              <Chip
+                className="border-none"
+                color={
+                  property.status === 'Active'
+                    ? 'success'
+                    : property.status === 'Pending'
+                    ? 'warning'
+                    : 'default'
+                }
+                size="sm"
+                variant="flat"
+              >
+                {property.status}
+              </Chip>
+            </motion.div>
+            {property.source && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <Tooltip 
+                  content={`Data from ${property.source.name} (${formatDate(property.source.fetchDate)})`}
+                  placement="bottom"
+                >
+                  <Chip
+                    className="border-none cursor-help"
+                    size="sm"
+                    variant="flat"
+                    startContent={<Info className="w-3 h-3" />}
+                  >
+                    Source
+                  </Chip>
+                </Tooltip>
+              </motion.div>
+            )}
+          </div>
         </CardHeader>
         <CardBody>
           <motion.div 

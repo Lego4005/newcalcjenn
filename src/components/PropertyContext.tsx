@@ -1,260 +1,182 @@
 'use client'
 
-import { Card, CardBody, Avatar, Button, Tooltip } from "@nextui-org/react"
-
-interface PropertyDetails {
-  beds: number
-  baths: number
-  sqft: number
-  lotSize: string
-  yearBuilt: number
-  propertyType: string
-  zoning: string
-  parking: string
-  stories: number
-}
-
-interface MarketData {
-  listPrice: string
-  pricePerSqft: number
-  daysOnMarket: number
-  lastSold: {
-    date: string
-    price: string
-  }
-  zestimate: string
-  comparables: {
-    low: string
-    high: string
-    median: string
-  }
-}
+import { FC, useState, useEffect } from 'react';
+import { Button, Avatar, Tooltip } from '@nextui-org/react';
+import { Building2 } from 'lucide-react';
+import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 
 interface Property {
-  id: string
-  address: string
-  price: string
-  image: string
-  status: 'active' | 'pending' | 'closed'
-  details: PropertyDetails
-  market: MarketData
-  images: string[]
-  description: string
+  id: string;
+  address: string;
+  price: number;
+  images?: string[];
+  isDemo?: boolean;
+  status?: string;
+  beds?: number;
+  baths?: number;
+  sqft?: number;
+  source?: {
+    name: string;
+    fetchDate: string;
+  };
 }
 
-export function PropertyContext({ isCompact = false }: { isCompact?: boolean }) {
-  const properties: Property[] = [
-    {
-      id: '1',
-      address: '123 Main St, Austin, TX',
-      price: '$450,000',
-      image: 'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
-      status: 'active',
-      details: {
-        beds: 3,
-        baths: 2.5,
-        sqft: 2100,
-        lotSize: '0.25 acres',
-        yearBuilt: 2015,
-        propertyType: 'Single Family',
-        zoning: 'Residential',
-        parking: '2 Car Garage',
-        stories: 2
-      },
-      market: {
-        listPrice: '$450,000',
-        pricePerSqft: 214,
-        daysOnMarket: 15,
-        lastSold: {
-          date: '2020-06-15',
-          price: '$385,000'
-        },
-        zestimate: '$465,000',
-        comparables: {
-          low: '$425,000',
-          high: '$475,000',
-          median: '$455,000'
+interface PropertyContextProps {
+  isCompact: boolean;
+}
+
+export const PropertyContext: FC<PropertyContextProps> = ({ isCompact }) => {
+  const router = useRouter();
+  const [properties, setProperties] = useState<Property[]>([]);
+
+  // Get just the street number and name from the full address
+  const getShortAddress = (address: string) => {
+    const parts = address.split(',')[0].trim().split(' ');
+    // Keep the street number and first word of street name
+    return `${parts[0]} ${parts[1]}`;
+  };
+
+  const handlePropertyClick = (property: Property) => {
+    router.push(`/dashboard?propertyId=${property.id}`);
+  };
+
+  // Clean up duplicates in properties array
+  const cleanupDuplicates = (properties: Property[]) => {
+    const seen = new Set<string>();
+    return properties.reverse().filter(property => {
+      const normalizedAddress = property.address.toLowerCase().replace(/\s+/g, ' ').trim();
+      if (seen.has(normalizedAddress)) {
+        return false;
+      }
+      seen.add(normalizedAddress);
+      return true;
+    }).reverse();
+  };
+
+  // Load saved properties from localStorage
+  useEffect(() => {
+    const savedProperties = localStorage.getItem('roca_properties');
+    if (savedProperties) {
+      try {
+        const parsedProperties = JSON.parse(savedProperties);
+        console.log('Loaded properties:', parsedProperties); // Debug log
+        if (parsedProperties.length > 0) {
+          // Clean up any existing duplicates
+          const cleanedProperties = cleanupDuplicates(parsedProperties);
+          
+          // Sort by most recently updated
+          const sortedProperties = cleanedProperties.sort((a: Property, b: Property) => {
+            return new Date(b.source?.fetchDate || 0).getTime() - new Date(a.source?.fetchDate || 0).getTime();
+          });
+
+          // Save cleaned properties back to storage
+          localStorage.setItem('roca_properties', JSON.stringify(cleanedProperties));
+          
+          setProperties(sortedProperties);
         }
-      },
-      images: [
-        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1560185127-6ed189bf02f4',
-        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c'
-      ],
-      description: 'Beautiful modern home in prime location. Recently renovated with high-end finishes throughout. Open concept living area, gourmet kitchen with stainless steel appliances, and spacious primary suite.'
-    },
-    {
-      id: '2',
-      address: '456 Oak Ave, Austin, TX',
-      price: '$550,000',
-      image: 'https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6',
-      status: 'pending',
-      details: {
-        beds: 4,
-        baths: 3,
-        sqft: 2800,
-        lotSize: '0.3 acres',
-        yearBuilt: 2018,
-        propertyType: 'Single Family',
-        zoning: 'Residential',
-        parking: '2 Car Garage',
-        stories: 2
-      },
-      market: {
-        listPrice: '$550,000',
-        pricePerSqft: 196,
-        daysOnMarket: 8,
-        lastSold: {
-          date: '2019-08-20',
-          price: '$475,000'
-        },
-        zestimate: '$565,000',
-        comparables: {
-          low: '$525,000',
-          high: '$575,000',
-          median: '$552,000'
-        }
-      },
-      images: [
-        'https://images.unsplash.com/photo-1605276374104-dee2a0ed3cd6',
-        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c',
-        'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b'
-      ],
-      description: 'Stunning new construction in desirable neighborhood. Chef\'s kitchen with quartz countertops, custom cabinetry, and premium appliances. Large backyard perfect for entertaining.'
-    },
-    {
-      id: '3',
-      address: '789 Pine Rd, Austin, TX',
-      price: '$650,000',
-      image: 'https://images.unsplash.com/photo-1605146769289-440113cc3d00',
-      status: 'closed',
-      details: {
-        beds: 5,
-        baths: 3.5,
-        sqft: 3200,
-        lotSize: '0.4 acres',
-        yearBuilt: 2020,
-        propertyType: 'Single Family',
-        zoning: 'Residential',
-        parking: '3 Car Garage',
-        stories: 2
-      },
-      market: {
-        listPrice: '$650,000',
-        pricePerSqft: 203,
-        daysOnMarket: 5,
-        lastSold: {
-          date: '2021-03-10',
-          price: '$590,000'
-        },
-        zestimate: '$675,000',
-        comparables: {
-          low: '$625,000',
-          high: '$685,000',
-          median: '$655,000'
-        }
-      },
-      images: [
-        'https://images.unsplash.com/photo-1605146769289-440113cc3d00',
-        'https://images.unsplash.com/photo-1600566753376-12c8ab7fb75b',
-        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c'
-      ],
-      description: 'Luxurious estate home with premium upgrades throughout. Gourmet kitchen, primary suite with spa-like bathroom, media room, and home office. Resort-style backyard with covered patio.'
-    },
-  ]
+      } catch (error) {
+        console.error('Error parsing saved properties:', error);
+      }
+    }
+  }, []);
+
+  // Get transaction details for a property
+  const getTransactionDetails = (propertyId: string) => {
+    const transactions = JSON.parse(localStorage.getItem('roca_transactions') || '{}');
+    return transactions[propertyId];
+  };
 
   return (
-    <div className={`flex flex-col ${isCompact ? 'items-center gap-1' : 'gap-2'}`}>
-      {!isCompact && (
-        <div className="px-4 mb-1">
-          <h2 className="text-xs font-medium text-default-500 uppercase">Properties</h2>
-        </div>
-      )}
-
-      <div className={`flex flex-col ${isCompact ? 'items-center gap-1' : 'gap-1 px-1'}`}>
-        {properties.map((property) => (
+    <div className="space-y-1">
+      {properties.map((property) => {
+        const transaction = getTransactionDetails(property.id);
+        return (
           <Tooltip
             key={property.id}
             content={
-              <Card className="border-none bg-content1 max-w-[300px]">
-                <CardBody className="gap-2">
-                  <div>
-                    <p className="font-semibold text-small">{property.address}</p>
-                    <p className="text-small text-default-500">{property.price}</p>
+              <div className="px-2 py-1 space-y-2">
+                <div className="relative w-[200px] h-[150px] mb-2 rounded-md overflow-hidden">
+                  {property.images && property.images.length > 0 ? (
+                    <Image
+                      src={property.images[0]}
+                      alt={property.address}
+                      fill
+                      className="object-cover"
+                      sizes="200px"
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-default-100 flex items-center justify-center">
+                      <Building2 className="w-8 h-8 text-default-300" />
+                    </div>
+                  )}
+                </div>
+                <div>
+                  <p className="font-medium">{property.address}</p>
+                  <p className="text-sm">${property.price?.toLocaleString()}</p>
+                  <div className="flex items-center gap-4 mt-1 text-xs text-default-500">
+                    {property.beds && <span>{property.beds} beds</span>}
+                    {property.baths && <span>{property.baths} baths</span>}
+                    {property.sqft && <span>{property.sqft.toLocaleString()} sqft</span>}
                   </div>
-                  <div className="text-tiny">
-                    <p>{property.details.beds} beds • {property.details.baths} baths • {property.details.sqft.toLocaleString()} sqft</p>
-                    <p>Built {property.details.yearBuilt} • {property.details.lotSize}</p>
-                    <p className="capitalize mt-1">Status: {property.status}</p>
+                </div>
+                {transaction && (
+                  <div className="border-t pt-2 space-y-1">
+                    <p className="text-xs text-default-500">Transaction Details:</p>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs">
+                      <div>
+                        <span className="text-default-400">Sale Price:</span>
+                        <span className="ml-1">${transaction.salePrice?.toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-default-400">Mortgage:</span>
+                        <span className="ml-1">${transaction.mortgageBalance?.toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-default-400">Annual Taxes:</span>
+                        <span className="ml-1">${transaction.annualTaxes?.toLocaleString()}</span>
+                      </div>
+                      <div>
+                        <span className="text-default-400">HOA (Monthly):</span>
+                        <span className="ml-1">${transaction.hoaFees?.toLocaleString()}</span>
+                      </div>
+                    </div>
                   </div>
-                  <p className="text-tiny text-default-500">
-                    {property.description.substring(0, 100)}...
-                  </p>
-                </CardBody>
-              </Card>
+                )}
+              </div>
             }
             placement="right"
-            showArrow
-            offset={10}
-            delay={200}
-            closeDelay={0}
           >
             <Button
-              className={`w-full group transition-transform hover:scale-[0.98] ${
-                isCompact ? 'p-0 h-auto min-h-0 max-w-[52px]' : 'p-1 h-auto'
-              }`}
+              className={`w-full justify-start text-default-600 ${isCompact ? 'px-0' : ''}`}
               variant="light"
-              radius="sm"
+              onPress={() => handlePropertyClick(property)}
             >
-              <div className={`flex ${isCompact ? 'justify-center' : 'items-center gap-3'} w-full`}>
-                <Avatar
-                  src={property.image}
-                  className={`
-                    ${isCompact ? 'w-11 h-11' : 'w-12 h-12'}
-                    transition-transform group-hover:scale-105
-                  `}
-                  radius="sm"
-                  classNames={{
-                    base: `border-2 border-transparent ${
-                      property.status === 'active' ? 'group-data-[hover=true]:border-primary' :
-                      property.status === 'pending' ? 'group-data-[hover=true]:border-warning' :
-                      'group-data-[hover=true]:border-success'
-                    }`
-                  }}
-                />
+              <div className={`flex items-center gap-2 ${isCompact ? 'justify-center' : ''}`}>
+                {property.images && property.images.length > 0 ? (
+                  <div className="relative w-4 h-4 rounded-sm overflow-hidden">
+                    <Image
+                      src={property.images[0]}
+                      alt={property.address}
+                      fill
+                      className="object-cover"
+                      sizes="16px"
+                    />
+                  </div>
+                ) : (
+                  <Building2 className="w-4 h-4" />
+                )}
                 {!isCompact && (
-                  <div className="flex flex-col items-start min-w-0">
-                    <p className="text-xs font-medium line-clamp-1 w-full">
-                      {property.address}
-                    </p>
-                    <p className="text-xs text-default-500">
-                      {property.price} • {property.details.beds}bd {property.details.baths}ba
-                    </p>
-                    <span className={`text-[10px] ${
-                      property.status === 'active' ? 'text-primary-500' :
-                      property.status === 'pending' ? 'text-warning-500' :
-                      'text-success-500'
-                    }`}>
-                      {property.status.charAt(0).toUpperCase() + property.status.slice(1)}
-                    </span>
+                  <div className="truncate">
+                    <span className="block text-sm truncate">{getShortAddress(property.address)}</span>
+                    <span className="block text-xs text-default-400">${property.price?.toLocaleString()}</span>
                   </div>
                 )}
               </div>
             </Button>
           </Tooltip>
-        ))}
-      </div>
-
-      {!isCompact && (
-        <Button
-          className="w-full mt-1 mx-1"
-          color="primary"
-          variant="ghost"
-          size="sm"
-        >
-          Add Property
-        </Button>
-      )}
+        );
+      })}
     </div>
-  )
-} 
+  );
+}; 

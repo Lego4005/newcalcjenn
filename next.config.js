@@ -1,7 +1,18 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   images: {
-    domains: ['picsum.photos', 'i.pravatar.cc', 'rocatitle.com'],
+    dangerouslyAllowSVG: true,
+    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: '**',
+      },
+    ],
+    unoptimized: true,
+  },
+  experimental: {
+    optimizePackageImports: ['@nextui-org/react'],
   },
 }
 

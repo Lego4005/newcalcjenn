@@ -1,15 +1,10 @@
-import type { Metadata } from "next";
-import { Inter } from "next/font/google";
-import "./globals.css";
-import { Providers } from "./providers";
-import { AppLayout } from "@/components/layout/AppLayout";
+'use client'
 
-const inter = Inter({ subsets: ["latin"] });
+import { Inter } from "next/font/google"
+import "./globals.css"
+import { Providers } from "./providers"
 
-export const metadata: Metadata = {
-  title: "Roca Title Dashboard",
-  description: "Property data and calculator dashboard",
-};
+const inter = Inter({ subsets: ["latin"] })
 
 export default function RootLayout({
   children,
@@ -17,15 +12,12 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head />
-      <body className={`${inter.className} text-foreground bg-background`} suppressHydrationWarning>
+    <html lang="en" className="light">
+      <body className={inter.className}>
         <Providers>
-          <AppLayout>
-            {children}
-          </AppLayout>
+          {children}
         </Providers>
       </body>
     </html>
-  );
+  )
 }

@@ -1,31 +1,10 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Card, CardBody, CardHeader, Tab, Tabs, Button, Spinner, Input, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Skeleton, Chip } from '@nextui-org/react';
-import { Share2, Download, Home, Calculator, History, Plus, Search, Info, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Spinner } from '@nextui-org/react';
+import { motion } from 'framer-motion';
 import SellerClosingCalculator from '../SellerClosingCosts/SellerClosingCalculator';
-import PropertyPreview from './PropertyPreview';
-import PropertyKPIs from './PropertyKPIs';
-import PropertyHistory from './PropertyHistory';
-import AddressAutocomplete from './AddressAutocomplete';
 import PropertyWizard from '../PropertyWizard/PropertyWizard';
 import type { Property } from '@/types/property';
-import type { AddressFeature } from '@/types/address';
 import { getProperty, getTransaction, saveTransaction } from '@/lib/storage';
-
-const tabVariants = {
-  enter: (direction: number) => ({
-    x: direction > 0 ? 20 : -20,
-    opacity: 0
-  }),
-  center: {
-    x: 0,
-    opacity: 1
-  },
-  exit: (direction: number) => ({
-    x: direction < 0 ? 20 : -20,
-    opacity: 0
-  })
-};
 
 export default function PropertyDashboard() {
   const [selectedTab, setSelectedTab] = useState('calculator');
@@ -34,7 +13,7 @@ export default function PropertyDashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [isDemoMode, setIsDemoMode] = useState(false);
   const [showDemoModal, setShowDemoModal] = useState(false);
-  const [showAddressModal, setShowAddressModal] = useState(false);
+  const [showWizard, setShowWizard] = useState(false);
   const [address, setAddress] = useState('');
   const [fetchError, setFetchError] = useState<string | null>(null);
   const [isPropertyConfirmed, setIsPropertyConfirmed] = useState(false);
@@ -55,7 +34,7 @@ export default function PropertyDashboard() {
   const handleTransactionUpdate = useCallback((details: any) => {
     if (details === null) {
       // Handle search mode
-      setShowAddressModal(true);
+      setShowWizard(true);
     } else if (details.salePrice === 450000) {
       // Handle demo mode
       handleDemoMode();
@@ -141,8 +120,8 @@ export default function PropertyDashboard() {
         settlementFee: 595,
         titleSearch: 175,
         municipalLienSearch: 175,
-        docStamps: 31500, // $0.70 per $100 of sale price
-        titleInsurance: 22875, // Based on FL title insurance rates
+        docStamps: 31500,
+        titleInsurance: 22875,
         hasPriorTitlePolicy: false,
         priorTitleAmount: 0,
         costResponsibility: {
@@ -272,100 +251,41 @@ export default function PropertyDashboard() {
     </motion.div>
   );
 
-  const PropertySkeletonLoader = () => (
-    <Card className="w-full">
-      <CardBody className="space-y-3">
-        <Skeleton className="rounded-lg">
-          <div className="h-[200px] rounded-lg bg-default-300"></div>
-        </Skeleton>
-        <div className="space-y-3">
-          <Skeleton className="w-3/5 rounded-lg">
-            <div className="h-8 rounded-lg bg-default-200"></div>
-          </Skeleton>
-          <Skeleton className="w-4/5 rounded-lg">
-            <div className="h-4 rounded-lg bg-default-200"></div>
-          </Skeleton>
-        </div>
-        <div className="grid grid-cols-2 gap-4">
-          {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} className="rounded-lg">
-              <div className="h-12 rounded-lg bg-default-300"></div>
-            </Skeleton>
-          ))}
-        </div>
-      </CardBody>
-    </Card>
-  );
+  const handleSearch = useCallback(() => {
+    console.log('Dashboard: Search handler called');
+    setShowWizard(true);
+  }, []);
+
+  if (showWizard) {
+    console.log('Dashboard: Showing wizard');
+    return (
+      <PropertyWizard 
+        property={property || undefined}
+        onConfirm={(selectedProperty) => {
+          console.log('Dashboard: Wizard confirmed', selectedProperty);
+          if (selectedProperty) {
+            setProperty(selectedProperty);
+            setShowWizard(false);
+            setIsPropertyConfirmed(true);
+          }
+        }}
+        onCancel={() => {
+          console.log('Dashboard: Wizard cancelled');
+          setShowWizard(false);
+        }}
+      />
+    );
+  }
 
   return (
-    <>
-      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full">
-        {/* Left Column - Property Preview */}
-        {property && isPropertyConfirmed && (
-          <div className="xl:col-span-4 space-y-6">
-            {isDemoMode && (
-              <Button
-                color="danger"
-                variant="flat"
-                onPress={exitDemoMode}
-                className="w-full mb-4"
-              >
-                Exit Demo Mode
-              </Button>
-            )}
-            <PropertyPreview property={property} />
-            <PropertyKPIs property={property} />
-          </div>
-        )}
-
-        {/* Right Column - Calculator */}
-        <div className={property && isPropertyConfirmed ? "xl:col-span-8" : "xl:col-span-12"}>
-          <SellerClosingCalculator
-            property={property}
-            transactionDetails={property?.transactionDetails}
-            onTransactionUpdate={handleTransactionUpdate}
-          />
-        </div>
-      </div>
-
-      {/* Property Wizard Modal */}
-      <Modal
-        isOpen={showAddressModal}
-        onOpenChange={setShowAddressModal}
-        size="5xl"
-        isDismissable={false}
-        hideCloseButton
-      >
-        <ModalContent>
-          {() => (
-            <PropertyWizard
-              property={property || { id: '', address: '', status: 'Active' }}
-              onConfirm={handlePropertyConfirm}
-              onCancel={handleWizardCancel}
-            />
-          )}
-        </ModalContent>
-      </Modal>
-
-      {/* Demo Mode Modal */}
-      <Modal isOpen={showDemoModal} onOpenChange={setShowDemoModal}>
-        <ModalContent>
-          {(onClose) => (
-            <>
-              <ModalHeader>Try Demo Mode</ModalHeader>
-              <ModalBody>
-                <p>Would you like to try the calculator with a sample luxury waterfront property?</p>
-              </ModalBody>
-              <ModalFooter>
-                <Button variant="flat" onPress={onClose}>Cancel</Button>
-                <Button color="primary" onPress={handleDemoMode}>Start Demo</Button>
-              </ModalFooter>
-            </>
-          )}
-        </ModalContent>
-      </Modal>
-
+    <div className="flex flex-col items-center justify-center min-h-[80vh] p-4">
+      <SellerClosingCalculator
+        property={property}
+        transactionDetails={property?.transactionDetails || pendingTransaction}
+        onTransactionUpdate={handleTransactionUpdate}
+        onSearch={handleSearch}
+      />
       {isLoading && <LoadingSpinner />}
-    </>
+    </div>
   );
 } 

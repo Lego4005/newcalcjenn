@@ -1,7 +1,7 @@
 'use client'
 
 import { CommandMenu } from "@/components/RealEstateCalculator/CommandMenu"
-import { Sidebar } from "./Sidebar"
+import { Sidebar } from "./Sidebar/index"
 import { useState, useEffect } from "react"
 
 interface AppLayoutProps {

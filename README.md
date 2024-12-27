@@ -62,34 +62,36 @@ src/
 - Team collaboration
 - Keyboard shortcuts
 
-### NextUI Pro Components Usage
+### Authentication
+- Email/password authentication
+- Password reset functionality
+- Role-based access (Admin, Broker, Agent)
+- Role selection during registration
+- Admin user management
 
-Currently using:
-- `CommandMenu` - For quick actions and navigation
-- `Avatar` - For user and property images
-- `Card` - For property cards and statistics
-- `Button` - For actions and navigation
-- `Tooltip` - For compact mode information
+### Database Schema
 
-Potential Pro components to integrate:
-- `Table` - For property comparisons
-- `Modal` - For detailed property views
-- `Accordion` - For grouped property information
-- `Tabs` - For different calculator views
-- `Select` - For enhanced dropdowns
+#### Users Table
+- id (uuid)
+- email (string)
+- role (enum: admin, broker, agent)
+- broker_id (uuid, optional)
+- created_at (timestamp)
 
-### Standard NextUI Components
-When Pro components aren't available, we use enhanced standard components:
-- Custom-styled buttons with hover effects
-- Cards with gradient overlays
-- Tooltips with rich content
-- Responsive layout components
+#### Properties Table
+- id (uuid)
+- address (string)
+- price (numeric)
+- commission_rate (numeric)
+- agent_id (uuid)
+- created_at (timestamp)
 
 ## Technology Stack
 
 - **Framework**: Next.js 14 with App Router
 - **UI Library**: NextUI + NextUI Pro
 - **Styling**: Tailwind CSS
+- **Backend**: Supabase (Auth & Database)
 - **Icons**: Lucide React
 - **State Management**: React Hooks
 - **Theme**: Dark/Light mode with system preference
@@ -106,6 +108,13 @@ NextUI Pro license
 ### Installation
 ```bash
 npm install
+```
+
+### Environment Setup
+Create a `.env.local` file with:
+```
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
 ```
 
 ### Running Development Server
@@ -159,3 +168,13 @@ The project implements:
    - Bulk operations
    - History tracking
    - Analytics dashboard
+
+## Contributing
+
+1. Create a feature branch
+2. Make your changes
+3. Submit a pull request
+
+## License
+
+MIT License

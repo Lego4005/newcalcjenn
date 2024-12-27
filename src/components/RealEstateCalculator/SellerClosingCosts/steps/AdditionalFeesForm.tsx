@@ -1,136 +1,215 @@
-import { Input, Switch, Card, CardBody, Tooltip } from '@nextui-org/react';
-import { InfoIcon } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import type { CalculatorFormData } from '../SellerClosingCalculator';
+import { useState } from 'react';
+import { Input, Switch, Card, CardBody, Button, Popover, PopoverTrigger, PopoverContent, Tooltip } from '@nextui-org/react';
+import { DollarSign, Info } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
 
-type AdditionalFeesFormProps = {
-  data: CalculatorFormData['additionalFees'];
-  onUpdate: (data: Partial<CalculatorFormData['additionalFees']>) => void;
-};
+interface AdditionalFeesFormProps {
+  data: {
+    hasPriorTitlePolicy: boolean;
+    priorTitleAmount?: number;
+    taxProrations: number;
+    hoaDues: number;
+    hoaEstoppelFee?: number;
+    settlementFee: number;
+    titleSearch: number;
+    municipalLienSearch: number;
+    docStamps: number;
+    titleInsurance: number;
+    costResponsibility: {
+      settlementFee: 'seller' | 'buyer';
+      titleSearch: 'seller' | 'buyer';
+      municipalLienSearch: 'seller' | 'buyer';
+      titleInsurance: 'seller' | 'buyer';
+      docStamps: 'seller' | 'buyer';
+    };
+  };
+  onUpdate: (data: Partial<AdditionalFeesFormProps['data']>) => void;
+}
 
 export default function AdditionalFeesForm({ data, onUpdate }: AdditionalFeesFormProps) {
-  const [errors, setErrors] = useState({
-    taxProrations: '',
-    hoaDues: '',
+  const [tempValues, setTempValues] = useState({
+    priorTitleAmount: data.priorTitleAmount?.toString() || '',
+    taxProrations: data.taxProrations.toString(),
+    hoaDues: data.hoaDues.toString(),
+    hoaEstoppelFee: data.hoaEstoppelFee?.toString() || '',
+    settlementFee: data.settlementFee.toString(),
+    titleSearch: data.titleSearch.toString(),
+    municipalLienSearch: data.municipalLienSearch.toString(),
+    docStamps: data.docStamps.toString(),
+    titleInsurance: data.titleInsurance.toString(),
   });
 
-  const validateAmount = (value: string, field: 'taxProrations' | 'hoaDues') => {
-    const amount = parseFloat(value);
-    if (isNaN(amount) || amount < 0) {
-      setErrors((prev) => ({
-        ...prev,
-        [field]: 'Please enter a valid amount',
-      }));
-      return false;
+  const handleNumberChange = (field: keyof typeof tempValues, value: string) => {
+    const cleanValue = value.replace(/[^0-9.]/g, '');
+    setTempValues(prev => ({ ...prev, [field]: cleanValue }));
+    
+    if (cleanValue === '') {
+      onUpdate({ [field]: 0 });
+      return;
     }
-    setErrors((prev) => ({ ...prev, [field]: '' }));
-    return true;
-  };
-
-  const handleTaxProrationsChange = (value: string) => {
-    if (validateAmount(value, 'taxProrations')) {
-      onUpdate({ taxProrations: parseFloat(value) });
+    
+    const numericValue = parseFloat(cleanValue);
+    if (!isNaN(numericValue)) {
+      onUpdate({ [field]: numericValue });
     }
   };
 
-  const handleHOADuesChange = (value: string) => {
-    if (validateAmount(value, 'hoaDues')) {
-      onUpdate({ hoaDues: parseFloat(value) });
-    }
+  const handleCostResponsibilityChange = (field: keyof typeof data.costResponsibility) => {
+    onUpdate({
+      costResponsibility: {
+        ...data.costResponsibility,
+        [field]: data.costResponsibility[field] === 'seller' ? 'buyer' : 'seller'
+      }
+    });
   };
 
-  const handlePriorTitlePolicyChange = (checked: boolean) => {
-    onUpdate({ hasPriorTitlePolicy: checked });
-  };
-
-  // Validate initial data
-  useEffect(() => {
-    validateAmount(data.taxProrations.toString(), 'taxProrations');
-    validateAmount(data.hoaDues.toString(), 'hoaDues');
-  }, []);
+  const renderMoneyInput = (
+    field: keyof typeof tempValues,
+    label: string,
+    tooltip: string,
+    showResponsibility = false
+  ) => (
+    <div className="flex items-center justify-between">
+      <div className="space-y-2">
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{label}</span>
+          <Tooltip content={tooltip}>
+            <Info className="w-4 h-4 text-default-400 cursor-help" />
+          </Tooltip>
+        </div>
+        <Popover placement="bottom">
+          <PopoverTrigger>
+            <Button
+              variant="bordered"
+              className="w-[200px] justify-start text-left font-normal"
+              startContent={<DollarSign className="w-4 h-4" />}
+            >
+              {formatCurrency(parseFloat(tempValues[field] || '0'))}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent>
+            <div className="p-4 w-[300px]">
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-2">Enter Amount</label>
+                  <Input
+                    type="text"
+                    placeholder="Enter amount"
+                    value={tempValues[field]}
+                    onValueChange={(value) => handleNumberChange(field, value)}
+                    size="lg"
+                    variant="bordered"
+                    startContent={<span className="text-default-400">$</span>}
+                    className="text-lg"
+                  />
+                </div>
+                <div className="text-center text-xl font-semibold">
+                  {formatCurrency(parseFloat(tempValues[field] || '0'))}
+                </div>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
+      </div>
+      {showResponsibility && (
+        <Switch
+          isSelected={data.costResponsibility[field as keyof typeof data.costResponsibility] === 'seller'}
+          onValueChange={() => handleCostResponsibilityChange(field as keyof typeof data.costResponsibility)}
+        >
+          {data.costResponsibility[field as keyof typeof data.costResponsibility] === 'seller' ? 'Seller Pays' : 'Buyer Pays'}
+        </Switch>
+      )}
+    </div>
+  );
 
   return (
     <div className="flex flex-col gap-6">
       <div>
         <h3 className="text-xl font-semibold mb-4">Additional Fees</h3>
         <p className="text-gray-600 mb-6">
-          Enter additional costs and fees associated with the sale.
+          Enter any additional fees and select who is responsible for payment.
         </p>
       </div>
 
       <Card>
-        <CardBody className="flex flex-col gap-6">
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-medium">Tax Prorations</span>
-              <Tooltip content="Property tax adjustments between buyer and seller">
-                <InfoIcon className="w-4 h-4 text-default-400" />
-              </Tooltip>
-            </div>
-            <Input
-              type="number"
-              placeholder="Enter tax prorations amount"
-              value={data.taxProrations.toString()}
-              onValueChange={handleTaxProrationsChange}
-              errorMessage={errors.taxProrations}
-              isInvalid={!!errors.taxProrations}
-              startContent={
-                <div className="pointer-events-none flex items-center">
-                  <span className="text-default-400 text-small">$</span>
-                </div>
-              }
-            />
-          </div>
-
-          <div className="flex items-center justify-between">
-            <div className="flex flex-col gap-1">
-              <div className="flex items-center gap-2">
-                <span className="text-medium">Prior Title Policy</span>
-                <Tooltip content="Having a prior title policy may qualify you for a discount">
-                  <InfoIcon className="w-4 h-4 text-default-400" />
-                </Tooltip>
-              </div>
-              <span className="text-small text-default-400">
-                Do you have a prior title policy?
-              </span>
-            </div>
+        <CardBody className="space-y-6">
+          <div className="flex items-center gap-4 mb-4">
             <Switch
               isSelected={data.hasPriorTitlePolicy}
-              onValueChange={handlePriorTitlePolicyChange}
-              aria-label="Prior Title Policy Status"
-              size="lg"
-            />
+              onValueChange={(checked) => onUpdate({ hasPriorTitlePolicy: checked })}
+            >
+              Has Prior Title Policy
+            </Switch>
+            {data.hasPriorTitlePolicy && (
+              renderMoneyInput(
+                'priorTitleAmount',
+                'Prior Title Amount',
+                'The amount of the prior title policy'
+              )
+            )}
           </div>
 
-          <div className="flex flex-col gap-2">
-            <div className="flex items-center gap-2">
-              <span className="text-medium">HOA Dues/Fees</span>
-              <Tooltip content="Include any HOA transfer fees, dues, or assessments">
-                <InfoIcon className="w-4 h-4 text-default-400" />
-              </Tooltip>
-            </div>
-            <Input
-              type="number"
-              placeholder="Enter HOA dues/fees"
-              value={data.hoaDues.toString()}
-              onValueChange={handleHOADuesChange}
-              errorMessage={errors.hoaDues}
-              isInvalid={!!errors.hoaDues}
-              startContent={
-                <div className="pointer-events-none flex items-center">
-                  <span className="text-default-400 text-small">$</span>
-                </div>
-              }
-            />
-          </div>
+          {renderMoneyInput(
+            'settlementFee',
+            'Settlement Fee',
+            'Fee charged by the title company for handling the closing',
+            true
+          )}
+
+          {renderMoneyInput(
+            'titleSearch',
+            'Title Search',
+            'Fee for searching property records',
+            true
+          )}
+
+          {renderMoneyInput(
+            'municipalLienSearch',
+            'Municipal Lien Search',
+            'Fee for searching municipal records for liens',
+            true
+          )}
+
+          {renderMoneyInput(
+            'titleInsurance',
+            'Title Insurance',
+            'Insurance protecting against title defects',
+            true
+          )}
+
+          {renderMoneyInput(
+            'docStamps',
+            'Doc Stamps',
+            'Documentary stamp tax on the deed',
+            true
+          )}
         </CardBody>
       </Card>
 
-      {data.hasPriorTitlePolicy && (
-        <div className="text-small text-success mt-2">
-          You may qualify for a title policy discount!
-        </div>
-      )}
+      <Card>
+        <CardBody>
+          <h3 className="text-lg font-semibold mb-4">Tax & HOA</h3>
+          <div className="space-y-6">
+            {renderMoneyInput(
+              'taxProrations',
+              'Annual Tax Amount',
+              'The annual property tax amount'
+            )}
+
+            {renderMoneyInput(
+              'hoaDues',
+              'HOA Dues',
+              'Annual HOA dues amount'
+            )}
+
+            {renderMoneyInput(
+              'hoaEstoppelFee',
+              'HOA Estoppel Fee',
+              'Fee charged by the HOA for providing closing documents'
+            )}
+          </div>
+        </CardBody>
+      </Card>
     </div>
   );
 } 

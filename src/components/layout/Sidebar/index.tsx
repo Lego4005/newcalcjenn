@@ -2,10 +2,10 @@
 
 import { Button, Tooltip } from "@nextui-org/react"
 import { ChevronLeft, Plus } from "lucide-react"
-import Image from "next/image"
 import { PropertyContext } from "@/components/PropertyContext"
 import { Navigation } from "./Navigation"
 import { UserSection } from "./UserSection"
+import Logo from "../Logo"
 
 interface SidebarProps {
   isCollapsed: boolean
@@ -19,21 +19,18 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
   }
 
   return (
-    <aside className={`fixed top-0 left-0 h-screen bg-background/80 dark:bg-black/90 backdrop-blur-xl border-r border-divider transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-72'}`}>
+    <aside className={`
+      fixed top-0 left-0 z-40 h-screen transition-all duration-300
+      bg-[#051B2C] text-white
+      ${isCollapsed ? 'w-20' : 'w-72'}
+    `}>
       <div className="flex flex-col h-full">
         <div className="relative">
-          <Image
-            src={isCollapsed ? "/roca-logo-small.png" : "/roca-logo.png"}
-            alt="Roca Logo"
-            width={isCollapsed ? 48 : 160}
-            height={isCollapsed ? 48 : 64}
-            className="dark:invert"
-            priority
-          />
+          <Logo isCollapsed={isCollapsed} />
           <Button
             isIconOnly
             variant="light"
-            className="text-default-500 data-[hover]:bg-default-100 absolute top-2 right-2"
+            className="text-white/80 data-[hover]:bg-white/10 absolute top-2 right-2"
             radius="full"
             onClick={toggleSidebar}
           >
@@ -46,13 +43,13 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
 
           <div className="mt-6">
             <div className={`px-3 py-2 flex items-center justify-between ${isCollapsed ? 'hidden' : ''}`}>
-              <h3 className="text-xs font-medium text-default-500 uppercase">Properties</h3>
+              <h3 className="text-xs font-medium text-white/80 uppercase">Properties</h3>
               <Tooltip content="Add Property">
                 <Button
                   isIconOnly
                   variant="light"
                   size="sm"
-                  className="text-default-500 data-[hover]:bg-default-100"
+                  className="text-white/80 data-[hover]:bg-white/10"
                 >
                   <Plus className="w-4 h-4" />
                 </Button>
@@ -62,7 +59,7 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
           </div>
         </div>
 
-        <div className="p-2 border-t border-divider">
+        <div className="p-2 border-t border-white/10">
           <UserSection isCollapsed={isCollapsed} />
         </div>
       </div>
