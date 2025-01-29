@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Link } from '@nextui-org/react'
+import { Card, CardBody, Table, TableHeader, TableColumn, TableBody, TableRow, TableCell, Button, Link } from "@heroui/react"
 import { createClient } from '@/utils/supabase/client'
 
 interface Property {

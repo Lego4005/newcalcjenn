@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Tooltip } from "@nextui-org/react"
+import { Button, Tooltip } from "@heroui/react"
 import { ChevronLeft, Plus } from "lucide-react"
 import { PropertyContext } from "@/components/PropertyContext"
 import { Navigation } from "./Navigation"

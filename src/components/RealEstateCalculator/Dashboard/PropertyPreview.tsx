@@ -1,4 +1,4 @@
-import { Card, CardBody, CardHeader, Chip, Image, Tooltip } from '@nextui-org/react';
+import { Card, CardBody, CardHeader, Chip, Image, Tooltip } from "@heroui/react";
 import { Bed, Bath, Square, Calendar, Map, Info } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Property } from './PropertyDashboard';

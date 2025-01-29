@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Card, CardBody, Button, Input, Tooltip, Spinner, Image } from '@nextui-org/react';
+import { Card, CardBody, Button, Input, Tooltip, Spinner, Image } from "@heroui/react";
 import { motion } from 'framer-motion';
 import { Home, DollarSign, Calendar, Info, Building2, Scale, Bed, Bath, Square, ChevronLeft, ChevronRight } from 'lucide-react';
 import AddressAutocomplete from '../Dashboard/AddressAutocomplete';

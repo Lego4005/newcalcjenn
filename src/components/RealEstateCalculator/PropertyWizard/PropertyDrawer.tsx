@@ -1,4 +1,4 @@
-import { Modal, ModalContent, ModalBody, Button, Image, Card, CardBody, Progress, Tooltip } from "@nextui-org/react";
+import { Modal, ModalContent, ModalBody, Button, Image, Card, CardBody, Progress, Tooltip } from "@heroui/react";
 import { X, Bed, Bath, Square, Calendar, Car, Ruler, School, Train, Navigation2, DollarSign, Home, Tag, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Info } from "lucide-react";
 import { useState } from "react";
 

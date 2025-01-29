@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardBody, Avatar, Input, Button, ScrollShadow } from "@nextui-org/react"
+import { Card, CardBody, Avatar, Input, Button, ScrollShadow } from "@heroui/react"
 
 interface Message {
   id: number

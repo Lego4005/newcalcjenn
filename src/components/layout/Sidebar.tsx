@@ -1,6 +1,6 @@
 'use client'
 
-import { Button, Avatar, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Tooltip } from "@nextui-org/react"
+import { Button, Avatar, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Tooltip } from "@heroui/react"
 import { Home, Building2, Settings, ChevronLeft, Users, FileText, PieChart, Plus, Bell, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import { PropertyContext } from "@/components/PropertyContext"

@@ -1,9 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Card, CardBody, Input, Button } from '@nextui-org/react'
+import Image from 'next/image'
+import { Card, CardBody, Input, Button } from "@heroui/react"
+import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
+import { supabaseUrl, supabaseAnonKey } from '@/lib/supabaseClient'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -11,11 +14,18 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
-  const supabase = createClientComponentClient()
+  const supabase = createClientComponentClient({
+    supabaseUrl,
+    supabaseKey: supabaseAnonKey,
+  })
 
   useEffect(() => {
     const checkSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session }, error } = await supabase.auth.getSession()
+      if (error) {
+        console.error('Error checking session:', error.message)
+        return
+      }
       if (session) {
         router.replace('/dashboard')
       }
@@ -43,8 +53,12 @@ export default function LoginPage() {
         setMessage('Login successful! Redirecting...')
         router.push('/dashboard')
       }
-    } catch (error) {
-      setMessage('An unexpected error occurred. Please try again.')
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setMessage(error.message)
+      } else {
+        setMessage('An unexpected error occurred. Please try again.')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -56,12 +70,13 @@ export default function LoginPage() {
 
       <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
         <div className="relative w-[600px] h-[180px] mb-12">
-          <img
+          <Image
             src="https://rocatitle.com/wp-content/uploads/2022/03/PNG-01_main_600px_wide_2.png"
             alt="Roca Title"
             width={600}
             height={180}
-            className="object-contain"
+            priority
+            className="object-contain w-full h-full"
           />
         </div>
 
@@ -82,6 +97,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
+                autoComplete="email"
                 classNames={{
                   label: "text-white font-medium",
                   input: "text-black !bg-white",
@@ -101,6 +117,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                autoComplete="current-password"
                 classNames={{
                   label: "text-white font-medium",
                   input: "text-black !bg-white",
@@ -113,13 +130,21 @@ export default function LoginPage() {
                 size="lg"
               />
 
-              <Button
-                type="submit"
-                className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-lg py-6"
-                isLoading={isLoading}
-              >
-                Sign In
-              </Button>
+              <div className="space-y-4">
+                <Button
+                  type="submit"
+                  className="w-full bg-red-600 hover:bg-red-700 text-white font-semibold text-lg py-6"
+                  isLoading={isLoading}
+                >
+                  Sign In
+                </Button>
+
+                <Link href="/register" className="block w-full">
+                  <Button className="w-full bg-transparent border-2 border-red-600 hover:bg-red-600/10 text-white font-semibold text-lg py-6">
+                    Create Account
+                  </Button>
+                </Link>
+              </div>
 
               {message && (
                 <p className={`text-center text-lg font-medium ${message.includes('successful') ? 'text-green-400' : 'text-red-400'}`}>
@@ -132,4 +157,4 @@ export default function LoginPage() {
       </div>
     </div>
   )
-} 
+}

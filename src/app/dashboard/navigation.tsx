@@ -1,6 +1,6 @@
 'use client'
 
-import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, User } from "@nextui-org/react"
+import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, User } from "@heroui/react"
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'

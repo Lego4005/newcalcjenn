@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname } from "next/navigation"
-import { Button } from "@nextui-org/react"
+import { Button } from "@heroui/react"
 import { Home, Building2, Users, FileText, BarChart } from "lucide-react"
 import Link from "next/link"
 

@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, CardBody } from "@nextui-org/react"
+import { Card, CardBody } from "@heroui/react"
 import { DollarSign, TrendingUp, BarChart2, LineChart } from "lucide-react"
 
 interface StatsCardProps {

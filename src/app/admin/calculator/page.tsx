@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardBody, Button, Input } from '@nextui-org/react';
+import { Card, CardBody, Button, Input } from "@heroui/react";
 import { getCalculatorDefaults, updateCalculatorDefaults } from '@/lib/calculator';
 import type { CalculatorDefaults } from '@/types/calculator';
 import NumericInput from '@/components/common/NumericInput';

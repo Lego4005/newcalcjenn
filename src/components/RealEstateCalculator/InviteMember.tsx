@@ -17,7 +17,7 @@ import {
   DropdownItem,
   Divider,
   Chip,
-} from "@nextui-org/react"
+} from "@heroui/react"
 import { Users } from "lucide-react"
 
 interface TeamMember {

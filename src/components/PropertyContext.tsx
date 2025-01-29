@@ -1,7 +1,7 @@
 'use client'
 
 import { FC, useState, useEffect } from 'react';
-import { Button, Avatar, Tooltip } from '@nextui-org/react';
+import { Button, Avatar, Tooltip } from "@heroui/react";
 import { Building2 } from 'lucide-react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';

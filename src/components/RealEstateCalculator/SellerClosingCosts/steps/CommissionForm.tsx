@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Input, Chip, Tooltip, Button, Popover, PopoverTrigger, PopoverContent } from '@nextui-org/react';
+import { Input, Chip, Tooltip, Button, Popover, PopoverTrigger, PopoverContent } from "@heroui/react";
 import { DollarSign, Info } from 'lucide-react';
 
 interface CommissionFormProps {

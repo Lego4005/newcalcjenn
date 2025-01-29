@@ -1,6 +1,6 @@
 'use client'
 
-import { Input, Slider } from "@nextui-org/react"
+import { Input, Slider } from "@heroui/react"
 import { useState } from "react"
 
 export function MortgageCalculator() {

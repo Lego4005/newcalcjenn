@@ -1,4 +1,4 @@
-import { Card, CardBody, Image } from "@nextui-org/react";
+import { Card, CardBody, Image } from "@heroui/react";
 import { Bed, Bath, Square, Calendar, TrendingUp, DollarSign } from "lucide-react";
 
 interface PropertyCardProps {

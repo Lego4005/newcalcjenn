@@ -10,7 +10,7 @@ import {
   ListboxItem,
   Listbox,
   Kbd,
-} from "@nextui-org/react"
+} from "@heroui/react"
 import { Command } from "lucide-react"
 import { Icon } from "@iconify/react"
 

@@ -1,9 +1,9 @@
 'use client'
 
 import { useState } from 'react'
-import { Card, CardBody, Button, RadioGroup, Radio } from '@nextui-org/react'
-import { createClient } from '@supabase/supabase-js'
+import { Card, CardBody, Button, RadioGroup, Radio } from "@heroui/react"
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabaseClient'
 
 export default function OnboardingPage() {
   const [role, setRole] = useState('agent')
@@ -16,33 +16,41 @@ export default function OnboardingPage() {
     setIsLoading(true)
     setMessage('')
     
-    const supabase = createClient(
-      'https://mouwoamlzmnysvmmvnii.supabase.co',
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1vdXdvYW1sem1ueXN2bW12bmlpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzUxNzIzMzgsImV4cCI6MjA1MDc0ODMzOH0.B1OQ10PLcujFhBesX4wNZ-TaxhX0dKml84lB8I3lMOQ'
-    )
-    
     try {
-      const { data: { user } } = await supabase.auth.getUser()
+      const { data: { user }, error: userError } = await supabase.auth.getUser()
       
-      if (user) {
-        const { error } = await supabase
-          .from('profiles')
-          .insert({
-            id: user.id,
-            email: user.email,
-            role,
-            created_at: new Date().toISOString(),
-            updated_at: new Date().toISOString()
-          })
-
-        if (error) {
-          setMessage(error.message)
-        } else {
-          router.push('/dashboard')
-        }
+      if (userError) {
+        setMessage('Error getting user information. Please try logging in again.')
+        return
       }
-    } catch (error: any) {
-      setMessage(error.message)
+
+      if (!user) {
+        setMessage('No user found. Please try logging in again.')
+        return
+      }
+
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .insert({
+          id: user.id,
+          email: user.email,
+          role,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+
+      if (profileError) {
+        setMessage(profileError.message)
+        return
+      }
+
+      router.push('/dashboard')
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        setMessage(error.message)
+      } else {
+        setMessage('An unexpected error occurred')
+      }
     } finally {
       setIsLoading(false)
     }
@@ -64,7 +72,7 @@ export default function OnboardingPage() {
         </div>
 
         <p className="text-xl text-white mb-8">
-          Welcome! Let's get you set up.
+          Welcome! Let&apos;s get you set up.
         </p>
 
         <Card
@@ -74,7 +82,7 @@ export default function OnboardingPage() {
           <CardBody className="py-8 px-6">
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="space-y-4">
-                <p className="text-white text-lg font-medium">What's your role?</p>
+                <p className="text-white text-lg font-medium">What&apos;s your role?</p>
                 <RadioGroup
                   value={role}
                   onValueChange={setRole}
@@ -88,7 +96,7 @@ export default function OnboardingPage() {
                       label: "text-white",
                     }}
                   >
-                    I'm a broker and will have agents under me
+                    I&apos;m a broker and will have agents under me
                   </Radio>
                   <Radio 
                     value="agent"
@@ -96,7 +104,7 @@ export default function OnboardingPage() {
                       label: "text-white",
                     }}
                   >
-                    I'm an agent and will connect with my broker
+                    I&apos;m an agent and will connect with my broker
                   </Radio>
                 </RadioGroup>
               </div>
@@ -120,4 +128,4 @@ export default function OnboardingPage() {
       </div>
     </div>
   )
-} 
+}

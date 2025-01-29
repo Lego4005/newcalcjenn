@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Input, Switch, Chip, Tooltip, Button, Popover, PopoverTrigger, PopoverContent } from '@nextui-org/react';
+import { Input, Switch, Chip, Tooltip, Button, Popover, PopoverTrigger, PopoverContent } from "@heroui/react";
 import { DollarSign, Home, Info } from 'lucide-react';
 
 interface MortgageInfoFormProps {

@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Spinner } from '@nextui-org/react';
+import { Spinner } from "@heroui/react";
 import { motion } from 'framer-motion';
 import SellerClosingCalculator from '../SellerClosingCosts/SellerClosingCalculator';
 import PropertyWizard from '../PropertyWizard/PropertyWizard';

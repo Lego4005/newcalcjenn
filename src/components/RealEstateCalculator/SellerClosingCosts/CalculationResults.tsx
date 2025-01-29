@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardBody, Button, Divider, Tooltip, Chip, ScrollShadow, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input } from '@nextui-org/react';
+import { Card, CardBody, Button, Divider, Tooltip, Chip, ScrollShadow, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input } from "@heroui/react";
 import { Info, Download, Share2, DollarSign, TrendingDown, ArrowRight, HelpCircle, Calculator } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { CalculatorFormData } from '@/types/calculator';

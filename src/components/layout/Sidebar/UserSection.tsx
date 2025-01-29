@@ -1,6 +1,6 @@
 'use client'
 
-import { Avatar, Button, Tooltip } from "@nextui-org/react"
+import { Avatar, Button, Tooltip } from "@heroui/react"
 import { Bell, Moon } from "lucide-react"
 import { useTheme } from "next-themes"
 

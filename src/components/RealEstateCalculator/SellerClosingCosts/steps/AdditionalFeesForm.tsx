@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Input, Switch, Card, CardBody, Button, Popover, PopoverTrigger, PopoverContent, Tooltip } from '@nextui-org/react';
+import { Input, Switch, Card, CardBody, Button, Popover, PopoverTrigger, PopoverContent, Tooltip } from "@heroui/react";
 import { DollarSign, Info } from 'lucide-react';
 import { formatCurrency } from '@/lib/utils';
 
