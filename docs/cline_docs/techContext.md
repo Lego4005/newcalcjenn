@@ -8,7 +8,7 @@
    - Node.js
 
 2. UI Libraries
-   - NextUI components
+   - HeroUI components
    - Tailwind CSS
    - Framer Motion
    - Lucide icons
@@ -87,7 +87,7 @@
 
 4. Dependencies
    - React 19 compatibility
-   - NextUI integration
+   - HeroUI integration
    - Framer Motion animations
    - Supabase client
    - Next/Image optimization

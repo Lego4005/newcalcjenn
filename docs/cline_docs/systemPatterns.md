@@ -31,7 +31,7 @@
    - Email verification flow
 
 2. UI Framework
-   - NextUI components
+   - HeroUI components (migrated from NextUI)
    - Tailwind CSS for styling
    - Framer Motion for animations
    - Responsive design

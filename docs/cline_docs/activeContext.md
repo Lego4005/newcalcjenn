@@ -6,6 +6,7 @@
 - Set up implementation and tasks documentation
 - Added ES module support to package.json
 - Implemented user authentication with role-based profiles
+- Migrated from NextUI to HeroUI
 
 ## Recent Changes
 1. Memory Bank Files Created:
@@ -34,6 +35,13 @@
    - Refactored auth callback for better error handling
    - Added TypeScript types for better type safety
    - Successfully tested registration and login flow
+
+5. UI Framework Migration:
+    - Migrated from NextUI to HeroUI
+    - Updated package dependencies
+    - Converted tailwind.config.js to ES modules
+    - Updated component imports and providers
+    - Verified component functionality
 
 ## Next Steps
 1. UI Improvements
