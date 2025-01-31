@@ -1,72 +1,71 @@
-# Development Tasks and Code Actions
+# Project Tasks
 
-## High Priority Tasks
-### Authentication Improvements
-- ❌ Implement password reset flow
-- ❌ Add user registration
-- ⚠️ Enhance error handling
-- ❌ Add session timeout handling
+## Current Sprint
 
-### Critical Features
-- ⚠️ Complete property search integration
-- ❌ Implement PDF generation
-- ❌ Add data export functionality
-- ⚠️ Enhance form persistence
+### High Priority
+- ✅ Complete HeroUI migration
+- ❌ Fix calculator styling in progress
+- ❌ Update dashboard components
+- ❌ Add property comparison
+- ❌ Implement data export
 
-## Medium Priority Tasks
-### UI Enhancements
-- ❌ Implement dark mode
-- ⚠️ Improve print layout
+### Medium Priority
+- ❌ Add more financial metrics
+- ❌ Enhance data visualization
+- ❌ Improve error handling
 - ❌ Add loading states
+- ❌ Optimize performance
+
+### Low Priority
+- ❌ Add user preferences
+- ❌ Implement dark mode
+- ❌ Add keyboard shortcuts
 - ❌ Enhance accessibility
+- ❌ Add tooltips
 
-### Data Management
-- ❌ Set up database migrations
-- ❌ Implement backup system
-- ⚠️ Complete API integrations
-- ❌ Add data validation
+## Upcoming Tasks
 
-## Testing Tasks
-### Test Implementation
-- ⚠️ Write unit tests for calculations
-- ❌ Create integration tests
-- ❌ Set up E2E testing
-- ❌ Implement performance tests
+### Feature Development
+- ❌ Property comparison tool in progress
+- ❌ PDF report generation
+- ❌ Data export options
+- ❌ Batch operations
+- ❌ Market analysis
 
-### Test Coverage
-- ❌ Authentication flow tests
-- ❌ Calculator workflow tests
-- ❌ API integration tests
-- ❌ Storage function tests
-
-## Code Actions
-### Refactoring
-- ✅ Extract calculation functions
-- ✅ Implement form abstractions
-- ⚠️ Optimize component structure
-- ❌ Reduce code duplication
-
-### Performance
-- ✅ Implement memoization
-- ⚠️ Optimize bundle size
-- ❌ Add code splitting
-- ❌ Implement lazy loading
+### Technical Debt
+- ❌ Refactor calculator logic
+- ❌ Optimize database queries
+- ❌ Add unit tests
+- ❌ Set up E2E tests
+- ❌ Update dependencies
 
 ### Documentation
-- ✅ Add JSDoc comments
-- ✅ Document API endpoints
-- ⚠️ Create user documentation
-- ❌ Add deployment guides
+- ❌ Update API docs
+- ❌ Write user guide
+- ❌ Document calculations
+- ❌ Add code comments
+- ❌ Create examples
 
-## Future Enhancements
-### Feature Ideas
-- ❌ Multiple property comparison
-- ❌ Custom fee templates
-- ❌ Transaction history
-- ❌ Data analytics
+## Completed Tasks
 
-### Integration Plans
-- ❌ MLS integration
-- ❌ Tax data API
-- ❌ HOA data integration
-- ❌ Document generation
+### Recent Completions
+- ❌ Next.js 14 setup
+- ✅ Supabase integration
+- ✅ Authentication system
+- ✅ Basic calculator
+- ✅ Property dashboard
+- ❌ Property comparison in progress
+- ❌ Data export functionality
+- ❌ Batch operations
+
+### Previous Sprint
+- ❌ Project initialization
+- ✅ Database schema
+- ✅ API endpoints
+- ❌ User management
+- ✅ Base components
+
+## Status Legend
+- ✅ Completed
+- ⚠️ In Progress
+- ⚠️ Not Started

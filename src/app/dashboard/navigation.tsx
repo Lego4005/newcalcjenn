@@ -3,14 +3,13 @@
 import { Navbar, NavbarBrand, NavbarContent, NavbarItem, Link, Button, User } from "@heroui/react"
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
-import Image from 'next/image'
 
 interface Profile {
-  full_name?: string
-  role?: string
+  readonly full_name?: string;
+  readonly role?: string;
 }
 
-export default function DashboardNavigation({ profile }: { profile: Profile | null }) {
+export default function DashboardNavigation({ profile }: { readonly profile: Profile | null }) {
   const router = useRouter()
   const isAdmin = profile?.role === 'admin'
 
@@ -33,6 +32,11 @@ export default function DashboardNavigation({ profile }: { profile: Profile | nu
           </Link>
         </NavbarItem>
         <NavbarItem>
+          <Link color="foreground" href="/dashboard/compare">
+            Compare
+          </Link>
+        </NavbarItem>
+        <NavbarItem>
           <Link color="foreground" href="/dashboard/properties">
             My Properties
           </Link>
@@ -49,10 +53,10 @@ export default function DashboardNavigation({ profile }: { profile: Profile | nu
       <NavbarContent justify="end">
         <NavbarItem>
           <User
-            name={profile?.full_name || 'User'}
-            description={profile?.role || 'Member'}
+            name={profile?.full_name ?? 'User'}
+            description={profile?.role ?? 'Member'}
             avatarProps={{
-              src: `https://api.dicebear.com/7.x/initials/svg?seed=${profile?.full_name || 'U'}`,
+              src: `https://api.dicebear.com/7.x/initials/svg?seed=${profile?.full_name ?? 'U'}`,
             }}
           />
         </NavbarItem>
@@ -60,7 +64,7 @@ export default function DashboardNavigation({ profile }: { profile: Profile | nu
           <Button 
             color="danger" 
             variant="flat" 
-            onClick={handleSignOut}
+            onPress={handleSignOut}
           >
             Sign Out
           </Button>

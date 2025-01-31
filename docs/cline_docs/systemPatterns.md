@@ -1,100 +1,261 @@
 # System Patterns
 
-## Architecture
-1. Frontend Framework
-   - Next.js 15.1.2
-   - TypeScript for type safety
-   - Client-side routing
-   - Server-side authentication
+## Architecture Overview
 
-2. Component Architecture
-   - Container/Presenter pattern
-   - Composition over inheritance
-   - Shared UI components
-   - Form abstraction
+### Core Components
+1. **Frontend (Next.js)**
+   - React components
+   - Server components
+   - Client components
+   - API routes
+   - Enhanced form handling
+   - Improved error feedback
+   - Multi-select interfaces
+   - Permission-based UI
+   - Time-series visualization
+   - Real-time collaboration
 
-3. State Management
-   - React hooks for local state
-   - URL parameters for shareable state
-   - Local storage for persistence
-   - Prop drilling minimized
-
-## Technical Decisions
-1. Authentication & Authorization
-   - Supabase for auth management
-   - Protected routes
-   - Session persistence
-   - Secure token handling
-   - Role-based access control (agent/broker)
-   - Row Level Security (RLS) policies
-   - Profile-user association
-   - Email verification flow
-
-2. UI Framework
-   - HeroUI components (migrated from NextUI)
-   - Tailwind CSS for styling
-   - Framer Motion for animations
+2. **UI Framework**
+   - HeroUI components
+   - Tailwind CSS
+   - Custom components
    - Responsive design
-   - Accessible form controls
-   - Image optimization with next/image
+   - Consistent button interactions
+   - Image optimization
+   - Dynamic grid layouts
+   - Conditional rendering
+   - Interactive time ranges
+   - Collaboration indicators
 
-3. Data Flow
-   - Top-down prop passing
-   - Event bubbling for updates
-   - Controlled components
-   - Form state management
-   - User metadata handling
+3. **Backend (Supabase)**
+   - PostgreSQL database
+   - Enhanced authentication
+   - Real-time updates
+   - API endpoints
+   - Session management
+   - Cookie handling
+   - Role-based access control
+   - Permission system
+   - Historical metrics storage
+   - Real-time presence tracking
+   - Edit history tracking
 
 ## Design Patterns
-1. Component Patterns
-   - Higher-Order Components
-   - Render props
-   - Custom hooks
-   - Context providers
-   - Form validation HOCs
 
-2. Form Patterns
-   - Step wizard pattern
-   - Form validation
-   - Error handling
-   - Real-time updates
-   - Role selection
-   - Profile creation
+### 1. Component Patterns
+- **Atomic Design**
+  - Atoms (basic components)
+  - Molecules (component groups)
+  - Organisms (complex components)
+  - Templates (page layouts)
+  - Form components
+  - Button components
+  - Multi-select components
+  - Permission-aware components
+  - Collaboration components
+  - Time range selectors
 
-3. Calculation Patterns
-   - Strategy pattern for fees
-   - Observer pattern for updates
-   - Factory pattern for forms
-   - Builder pattern for results
+- **Container Pattern**
+  - Data fetching
+  - State management
+  - Business logic
+  - UI rendering
+  - Error handling
+  - Loading states
+  - Comparison logic
+  - Permission checks
+  - Trend analysis
+  - Real-time collaboration
+
+### 2. Data Patterns
+- **Repository Pattern**
+  - Data access layer
+  - CRUD operations
+  - Query optimization
+  - Cache management
+  - Session handling
+  - Batch operations
+  - Permission validation
+  - Role management
+  - Time-series data
+  - Presence tracking
+  - Edit history
+
+- **State Management**
+  - React context
+  - Local state
+  - Server state
+  - Form state
+  - Auth state
+  - Session state
+  - Comparison state
+  - Permission state
+  - Trend state
+  - Presence state
+  - Collaboration state
+
+### 3. Authentication Patterns
+- **User Management**
+  - Session handling
+  - Cookie management
+  - Error handling
+  - User feedback
+  - Role-based access
+  - Profile management
+  - Permission system
+  - Feature protection
+
+- **Permission System**
+  - Role definitions
+  - Permission checks
+  - Feature protection
+  - Route guards
+  - UI adaptation
+  - Access control
+  - Permission hooks
+  - Middleware
+
+### 4. Collaboration Patterns
+- **Presence System**
+  - Real-time tracking
+  - User status
+  - Field-level presence
+  - Automatic cleanup
+  - Presence indicators
+  - User avatars
+  - Activity timestamps
+  - Concurrent editing
+
+- **Edit History**
+  - Field-level changes
+  - User attribution
+  - Timestamp tracking
+  - Change visualization
+  - Audit trails
+  - Revert capabilities
+  - Change notifications
+  - Conflict resolution
+
+### 5. Database Patterns
+- **Table Structure**
+  - calculator_defaults (system settings)
+  - saved_calculations (user data)
+  - user_profiles (user settings)
+  - property_metrics (historical data)
+  - property_presence (real-time presence)
+  - property_edit_history (change tracking)
+  - Row-level security
+  - JSON column types
+  - Role-based access
+  - Permission storage
+
+- **Access Patterns**
+  - User-specific queries
+  - Default value management
+  - Calculation caching
+  - Batch operations
+  - Session management
+  - Permission validation
+  - Role enforcement
+  - Historical data retrieval
+  - Presence tracking
+  - Edit history logging
+
+### 6. API Patterns
+- **REST Architecture**
+  - Resource-based routes
+  - HTTP methods
+  - Status codes
+  - Response formats
+  - Error handling
+  - Permission middleware
+  - Role validation
+  - Real-time endpoints
+
+- **Real-time Updates**
+  - Supabase subscriptions
+  - Event handling
+  - State synchronization
+  - Error handling
+  - Session management
+  - Permission checks
+  - Role-based filtering
+  - Presence broadcasting
+  - Edit notifications
 
 ## Best Practices
-1. Code Organization
-   - Feature-based structure
-   - Shared utilities
-   - Type definitions
-   - Constants separation
-   - Auth middleware
 
-2. Performance
-   - Memoization
-   - Code splitting
-   - Lazy loading
-   - Bundle optimization
-   - Image optimization
-   - LCP optimization
+### 1. Code Organization
+- Feature-based structure
+- Clear separation of concerns
+- Consistent naming
+- Documentation
+- Type safety
+- Component isolation
+- Pattern reusability
+- Permission encapsulation
+- Collaboration hooks
+- Time-series handling
 
-3. Maintainability
-   - Clear documentation
-   - Consistent naming
-   - Modular design
-   - Testing strategy
-   - Type safety
-   - Error boundaries
+### 2. Performance
+- Code splitting
+- Lazy loading
+- Caching strategies
+- Bundle optimization
+- Image optimization
+- Session management
+- Batch processing
+- Permission caching
+- Presence optimization
+- Time-series optimization
 
-4. Security
-   - Row Level Security
-   - Type-safe database access
-   - Protected API routes
-   - Secure auth flows
-   - Role validation
-   - Profile protection
+### 3. Security
+- Authentication
+- Authorization
+- Data validation
+- Error handling
+- Cookie security
+- Session management
+- Permission checks
+- Role validation
+- Collaboration access control
+- Time-series access control
+
+### 4. Testing
+- Unit Testing
+- Integration Testing
+- E2E Testing
+- Performance Testing
+- Authentication Testing
+- Permission Testing
+- Role Testing
+- Access Control Testing
+- Presence Testing
+- Edit History Testing
+- Time-series Testing
+
+### 5. User Experience
+- Responsive design
+- Color accessibility
+- Interactive elements
+- Real-time updates
+- Error feedback
+- Loading states
+- Form validation
+- Permission feedback
+- Role-based UI
+- Feature access control
+- Collaboration feedback
+- Time range interaction
+
+### 6. Authentication
+- Secure session handling
+- Cookie management
+- Error handling
+- User feedback
+- Role-based access
+- Profile management
+- Session persistence
+- Permission enforcement
+- Collaboration authorization
+- Time-series authorization

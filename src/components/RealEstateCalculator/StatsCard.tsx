@@ -1,17 +1,24 @@
 'use client'
 
-import { Card, CardBody } from "@heroui/react"
+import { 
+  Card, 
+  CardBody, 
+  Chip,
+  Spacer,
+  cn
+} from "@heroui/react"
+
 import { DollarSign, TrendingUp, BarChart2, LineChart } from "lucide-react"
 
 interface StatsCardProps {
-  title: string
-  value: string
-  metric: {
-    value: string
-    label: string
-    trend: 'up' | 'down'
+  readonly title: string
+  readonly value: string
+  readonly metric: {
+    readonly value: string
+    readonly label: string
+    readonly trend: 'up' | 'down'
   }
-  type: 'price' | 'proceeds' | 'sqft' | 'trend'
+  readonly type: 'price' | 'proceeds' | 'sqft' | 'trend'
 }
 
 export function StatsCard({ title, value, metric, type }: StatsCardProps) {
@@ -22,31 +29,41 @@ export function StatsCard({ title, value, metric, type }: StatsCardProps) {
     trend: LineChart
   }
 
+  const colors = {
+    price: "secondary",
+    proceeds: "success",
+    sqft: "primary",
+    trend: "warning"
+  } as const
+
   const Icon = icons[type]
+  const color = colors[type]
   const isPositive = metric.trend === 'up'
 
   return (
-    <Card className="bg-content1/50 dark:bg-content1/5 backdrop-blur-lg border-none">
+    <Card 
+      className={cn(
+        "backdrop-blur-lg",
+        "bg-content1/50 dark:bg-content1/5",
+        "border-none"
+      )}
+    >
       <CardBody className="gap-2">
         <div className="flex items-center justify-between">
           <p className="text-sm text-foreground/70">{title}</p>
-          <div className={`p-2 rounded-lg ${
-            type === 'price' ? 'bg-pink-500/10 text-pink-500' :
-            type === 'proceeds' ? 'bg-emerald-500/10 text-emerald-500' :
-            type === 'sqft' ? 'bg-blue-500/10 text-blue-500' :
-            'bg-purple-500/10 text-purple-500'
-          }`}>
+          <div className={cn(
+            "p-2 rounded-lg",
+            `bg-${color}/10 text-${color}`
+          )}>
             <Icon className="w-4 h-4" />
           </div>
         </div>
+        <Spacer y={1} />
         <div className="flex items-end justify-between">
           <p className="text-xl font-semibold">{value}</p>
-          <div className={`flex items-center gap-1 text-sm ${
-            isPositive ? 'text-emerald-500' : 'text-pink-500'
-          }`}>
-            <span>{metric.value}</span>
-            <span className="text-xs text-foreground/50">{metric.label}</span>
-          </div>
+          <Chip color={isPositive ? "success" : "danger"} size="sm">
+            {metric.value} <span className="text-xs opacity-70">{metric.label}</span>
+          </Chip>
         </div>
       </CardBody>
     </Card>

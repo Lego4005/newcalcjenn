@@ -15,9 +15,9 @@ async function createUserProfile(
 
   // Only create profile if it doesn't exist
   if (!profile && !profileError) {
-    const userRole = user.user_metadata?.role ?? 'agent'
+    const userRole = user.user_metadata?.role ?? 'user'
     
-    if (!['agent', 'broker'].includes(userRole)) {
+    if (!['user', 'agent', 'broker'].includes(userRole)) {
       throw new Error('Invalid role specified')
     }
 
@@ -25,7 +25,6 @@ async function createUserProfile(
       .from('profiles')
       .insert({
         id: user.id,
-        email: user.email ?? '',
         role: userRole,
         created_at: new Date().toISOString(),
         updated_at: new Date().toISOString()

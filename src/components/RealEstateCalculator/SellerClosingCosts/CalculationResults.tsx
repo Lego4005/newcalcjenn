@@ -1,26 +1,38 @@
 import { useState } from 'react';
 import { Card, CardBody, Button, Divider, Tooltip, Chip, ScrollShadow, Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Input } from "@heroui/react";
-import { Info, Download, Share2, DollarSign, TrendingDown, ArrowRight, HelpCircle, Calculator } from 'lucide-react';
+import { Info, Share2, DollarSign, TrendingDown, HelpCircle, Calculator } from 'lucide-react';
 import { motion } from 'framer-motion';
-import type { CalculatorFormData } from '@/types/calculator';
+import type { CalculatorFormData, CommissionStructure, AdditionalFees } from '@/types/calculator';
+import { DonutChart } from '@/components/charts/DonutChart';
+import PDFDownloadButton from './PDFDownloadButton';
+import { SparklineChart } from '@/components/charts/SparklineChart';
 
 interface CalculationResultsProps {
-  formData: CalculatorFormData;
-  onUpdate?: (section: keyof CalculatorFormData, data: any) => void;
+  readonly formData: CalculatorFormData;
+  readonly onUpdate?: (section: keyof CalculatorFormData, data: Partial<CommissionStructure | AdditionalFees>) => void;
 }
 
 interface CostItem {
-  label: string;
-  amount: number;
-  type: 'commission' | 'fee' | 'tax' | 'total' | 'net';
-  source: 'User' | 'Default' | 'Calculated';
-  tooltip: string;
-  formula?: string;
-  editable?: boolean;
-  onUpdate?: (value: number) => void;
-  isPercentage?: boolean;
-  percentageValue?: number;
+  readonly label: string;
+  readonly amount: number;
+  readonly type: 'commission' | 'fee' | 'tax' | 'total' | 'net';
+  readonly source: 'User' | 'Default' | 'Calculated';
+  readonly tooltip: string;
+  readonly formula?: string;
+  readonly editable?: boolean;
+  readonly onUpdate?: (value: number) => void;
+  readonly isPercentage?: boolean;
+  readonly percentageValue?: number;
 }
+
+const formatCurrency = (amount: number) => {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(amount);
+};
 
 export default function CalculationResults({ formData, onUpdate }: CalculationResultsProps) {
   const [showSources, setShowSources] = useState(false);
@@ -32,14 +44,19 @@ export default function CalculationResults({ formData, onUpdate }: CalculationRe
 
     if (field === 'listingCommission') {
       onUpdate('commissionStructure', {
+        ...formData.commissionStructure,
         listingAgentRate: value,
       });
     } else if (field === 'buyerCommission') {
       onUpdate('commissionStructure', {
+        ...formData.commissionStructure,
         buyerAgentRate: value,
       });
     } else if (field in formData.additionalFees) {
-      onUpdate('additionalFees', { [field]: value });
+      onUpdate('additionalFees', { 
+        ...formData.additionalFees,
+        [field]: value 
+      });
     }
   };
 
@@ -51,6 +68,32 @@ export default function CalculationResults({ formData, onUpdate }: CalculationRe
     formData.additionalFees.municipalLienSearch + formData.additionalFees.docStamps +
     formData.additionalFees.titleInsurance + formData.additionalFees.taxProrations;
   const netProceeds = formData.propertyDetails.salePrice - totalClosingCosts - formData.mortgageInfo.loanBalance;
+
+  // Data for the donut chart
+  const costBreakdown = [
+    { name: 'Commissions', value: listingCommission + buyerCommission },
+    { name: 'Title & Settlement', value: formData.additionalFees.settlementFee + formData.additionalFees.titleSearch + formData.additionalFees.titleInsurance },
+    { name: 'Taxes & Fees', value: formData.additionalFees.docStamps + formData.additionalFees.taxProrations },
+    { name: 'Other Fees', value: formData.additionalFees.municipalLienSearch }
+  ];
+
+  // Mock historical data for sparklines
+  const mockHistoricalData = {
+    costs: [
+      { value: totalClosingCosts * 0.95 },
+      { value: totalClosingCosts * 0.97 },
+      { value: totalClosingCosts * 0.98 },
+      { value: totalClosingCosts * 0.99 },
+      { value: totalClosingCosts }
+    ],
+    proceeds: [
+      { value: netProceeds * 0.95 },
+      { value: netProceeds * 0.97 },
+      { value: netProceeds * 0.98 },
+      { value: netProceeds * 0.99 },
+      { value: netProceeds }
+    ]
+  };
 
   const costs: CostItem[] = [
     {
@@ -157,15 +200,6 @@ export default function CalculationResults({ formData, onUpdate }: CalculationRe
     }
   ];
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(amount);
-  };
-
   const getSourceChip = (source: string) => {
     switch (source) {
       case 'User':
@@ -182,7 +216,7 @@ export default function CalculationResults({ formData, onUpdate }: CalculationRe
   const handleEditClick = (item: CostItem) => {
     setEditingItem(item);
     setEditValue(item.isPercentage ? 
-      item.percentageValue?.toString() || "0" : 
+      item.percentageValue?.toString() ?? "0" : 
       item.amount.toString()
     );
   };
@@ -195,6 +229,24 @@ export default function CalculationResults({ formData, onUpdate }: CalculationRe
       }
     }
     setEditingItem(null);
+  };
+
+  // For the background color class
+  const getBackgroundClass = (type: string) => {
+    if (type === 'total') return 'bg-default-100';
+    if (type === 'net') return 'bg-primary-50 dark:bg-primary-900/20';
+    return '';
+  };
+
+  // For the icon color class
+  const getIconColorClass = (type: string) => {
+    switch (type) {
+      case 'commission': return 'text-success';
+      case 'fee': return 'text-warning';
+      case 'tax': return 'text-danger';
+      case 'total': return 'text-default-500';
+      default: return 'text-primary';
+    }
   };
 
   return (
@@ -212,14 +264,27 @@ export default function CalculationResults({ formData, onUpdate }: CalculationRe
           >
             Share
           </Button>
-          <Button
-            variant="flat"
-            startContent={<Download className="w-4 h-4" />}
-          >
-            Download
-          </Button>
+          <PDFDownloadButton
+            formData={formData}
+            costs={costs}
+            totalClosingCosts={totalClosingCosts}
+            netProceeds={netProceeds}
+          />
         </div>
       </div>
+
+      {/* Cost Breakdown Chart */}
+      <Card>
+        <CardBody>
+          <h3 className="text-lg font-semibold mb-4">Cost Distribution</h3>
+          <div className="h-64">
+            <DonutChart 
+              data={costBreakdown}
+              colors={['hsl(var(--primary))', 'hsl(var(--success))', 'hsl(var(--warning))', 'hsl(var(--danger))']}
+            />
+          </div>
+        </CardBody>
+      </Card>
 
       {/* Main Content */}
       <Card>
@@ -235,19 +300,10 @@ export default function CalculationResults({ formData, onUpdate }: CalculationRe
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: index * 0.1 }}
                   >
-                    <div className={`flex items-center justify-between p-3 rounded-lg transition-colors
-                      ${item.type === 'total' ? 'bg-default-100' : 
-                        item.type === 'net' ? 'bg-primary-50 dark:bg-primary-900/20' : ''}`}
-                    >
+                    <div className={`flex items-center justify-between p-3 rounded-lg transition-colors ${getBackgroundClass(item.type)}`}>
                       <div className="flex items-center gap-2">
                         <Tooltip content={item.tooltip}>
-                          <Info className={`w-4 h-4 cursor-help
-                            ${item.type === 'commission' ? 'text-success' :
-                              item.type === 'fee' ? 'text-warning' :
-                              item.type === 'tax' ? 'text-danger' :
-                              item.type === 'total' ? 'text-default-500' :
-                              'text-primary'}`}
-                          />
+                          <Info className={`w-4 h-4 cursor-help ${getIconColorClass(item.type)}`} />
                         </Tooltip>
                         <span className={`font-medium ${item.type === 'net' ? 'text-xl' : ''}`}>
                           {item.label}
@@ -350,12 +406,18 @@ export default function CalculationResults({ formData, onUpdate }: CalculationRe
               <div className="p-3 rounded-full bg-danger/10">
                 <TrendingDown className="w-6 h-6 text-danger" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-default-500">Total Closing Costs</p>
                 <p className="text-2xl font-bold">{formatCurrency(totalClosingCosts)}</p>
                 <p className="text-sm text-default-400">
                   {((totalClosingCosts / formData.propertyDetails.salePrice) * 100).toFixed(1)}% of sale price
                 </p>
+                <div className="h-8 mt-2">
+                  <SparklineChart 
+                    data={mockHistoricalData.costs}
+                    color="hsl(var(--danger))"
+                  />
+                </div>
               </div>
             </div>
           </CardBody>
@@ -367,12 +429,18 @@ export default function CalculationResults({ formData, onUpdate }: CalculationRe
               <div className="p-3 rounded-full bg-primary/10">
                 <DollarSign className="w-6 h-6 text-primary" />
               </div>
-              <div>
+              <div className="flex-1">
                 <p className="text-default-500">Estimated Net Proceeds</p>
                 <p className="text-2xl font-bold">{formatCurrency(netProceeds)}</p>
                 <p className="text-sm text-default-400">
                   After paying off {formatCurrency(formData.mortgageInfo.loanBalance)} mortgage
                 </p>
+                <div className="h-8 mt-2">
+                  <SparklineChart 
+                    data={mockHistoricalData.proceeds}
+                    color="hsl(var(--primary))"
+                  />
+                </div>
               </div>
             </div>
           </CardBody>
@@ -380,4 +448,4 @@ export default function CalculationResults({ formData, onUpdate }: CalculationRe
       </div>
     </div>
   );
-} 
+}

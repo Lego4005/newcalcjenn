@@ -7,6 +7,7 @@ import React from "react";
 import {useControlledState} from "@react-stately/utils";
 import {motion, LazyMotion, domAnimation} from "framer-motion";
 import {cn} from "../../../utils/cn";
+import { Button } from "@heroui/react";
 
 export type VerticalStepProps = {
   className?: string;
@@ -14,7 +15,7 @@ export type VerticalStepProps = {
   title?: React.ReactNode;
 };
 
-export interface VerticalStepsProps extends React.HTMLAttributes<HTMLButtonElement> {
+export interface VerticalStepsProps extends ButtonProps {
   steps?: VerticalStepProps[];
   color?: ButtonProps["color"];
   currentStep?: number;
@@ -123,21 +124,22 @@ export const VerticalSteps = React.forwardRef<HTMLButtonElement, VerticalStepsPr
       <nav aria-label="Progress" className="max-w-fit">
         <ol className={cn("flex flex-col gap-y-3", colors, className)}>
           {steps?.map((step, stepIdx) => {
-            let status =
+            const status =
               currentStep === stepIdx ? "active" : currentStep < stepIdx ? "inactive" : "complete";
 
             return (
               <li key={stepIdx} className="relative">
                 <div className="flex w-full max-w-full items-center">
-                  <button
+                  <Button
                     key={stepIdx}
                     ref={ref}
                     aria-current={status === "active" ? "step" : undefined}
+                    data-status={status}
                     className={cn(
                       "group flex w-full cursor-pointer items-center justify-center gap-4 rounded-large px-3 py-2.5",
                       stepClassName,
                     )}
-                    onClick={() => setCurrentStep(stepIdx)}
+                    onPress={() => setCurrentStep(stepIdx)}
                     {...props}
                   >
                     <div className="flex h-full items-center">
@@ -175,7 +177,7 @@ export const VerticalSteps = React.forwardRef<HTMLButtonElement, VerticalStepsPr
                               {status === "complete" ? (
                                 <CheckIcon className="h-6 w-6 text-[var(--active-fg-color)]" />
                               ) : (
-                                <span>{stepIdx + 1}</span>
+                                <span data-testid="step-number">{stepIdx + 1}</span>
                               )}
                             </div>
                           </motion.div>
@@ -196,7 +198,7 @@ export const VerticalSteps = React.forwardRef<HTMLButtonElement, VerticalStepsPr
                         </div>
                         <div
                           className={cn(
-                            "text-tiny text-default-600 transition-[color,opacity] duration-300 group-active:opacity-70 lg:text-small",
+                            "text-tiny lg:text-small text-default-600 transition-[color,opacity] duration-300 group-active:opacity-70",
                             {
                               "text-default-500": status === "inactive",
                             },
@@ -206,11 +208,12 @@ export const VerticalSteps = React.forwardRef<HTMLButtonElement, VerticalStepsPr
                         </div>
                       </div>
                     </div>
-                  </button>
+                  </Button>
                 </div>
                 {stepIdx < steps.length - 1 && !hideProgressBars && (
                   <div
                     aria-hidden="true"
+                    data-testid="progress-bar"
                     className={cn(
                       "pointer-events-none absolute left-[17px] top-[42px] h-[calc(100%-34px)] w-[2px]",
                       {
@@ -229,4 +232,4 @@ export const VerticalSteps = React.forwardRef<HTMLButtonElement, VerticalStepsPr
   },
 );
 
-VerticalSteps.displayName = "VerticalSteps"; 
+VerticalSteps.displayName = "VerticalSteps";

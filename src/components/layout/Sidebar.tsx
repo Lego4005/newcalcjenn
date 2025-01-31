@@ -1,7 +1,7 @@
 'use client'
 
 import { Button, Avatar, Dropdown, DropdownTrigger, DropdownMenu, DropdownItem, Tooltip } from "@heroui/react"
-import { Home, Building2, Settings, ChevronLeft, Users, FileText, PieChart, Plus, Bell, Moon, Sun } from "lucide-react"
+import { Home, Building2, ChevronLeft, Users, FileText, PieChart, Plus, Bell, Moon, Sun } from "lucide-react"
 import { useTheme } from "next-themes"
 import { PropertyContext } from "@/components/PropertyContext"
 import Logo from './Logo'
@@ -23,6 +23,10 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
     setTheme(theme === 'light' ? 'dark' : 'light')
   }
 
+  const handleLogout = async () => {
+    // Add logout functionality here
+  }
+
   return (
     <aside className={`fixed top-0 left-0 h-screen bg-black/90 backdrop-blur-xl border-r border-white/10 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-64'}`}>
       <Logo isCollapsed={isCollapsed} />
@@ -33,7 +37,7 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
             variant="light"
             className="text-white/90 data-[hover]:bg-white/10"
             radius="full"
-            onClick={toggleSidebar}
+            onPress={toggleSidebar}
           >
             <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
           </Button>
@@ -113,8 +117,9 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
                       className="flex-1 justify-start gap-2 text-white/90 data-[hover]:bg-white/10"
                     >
                       <Avatar
-                        src="https://i.pravatar.cc/40?img=3"
+                        src={`https://api.dicebear.com/7.x/initials/svg?seed=JS&backgroundColor=0369a1`}
                         className="w-8 h-8"
+                        style={{ height: 'auto' }}
                       />
                       <span className="text-sm">John Smith</span>
                       <ChevronLeft className="w-4 h-4 rotate-90" />
@@ -126,7 +131,7 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
                     <DropdownItem key="team">Team</DropdownItem>
                     <DropdownItem key="analytics">Analytics</DropdownItem>
                     <DropdownItem key="help">Help & Feedback</DropdownItem>
-                    <DropdownItem key="logout" className="text-danger" color="danger">
+                    <DropdownItem key="logout" className="text-danger" color="danger" onPress={handleLogout}>
                       Log Out
                     </DropdownItem>
                   </DropdownMenu>
@@ -143,7 +148,7 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
                     isIconOnly
                     variant="light"
                     className="text-white/90 data-[hover]:bg-white/10"
-                    onClick={toggleTheme}
+                    onPress={toggleTheme}
                   >
                     {theme === 'light' ? (
                       <Moon className="w-4 h-4" />
@@ -160,8 +165,9 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
                 className="w-full text-white/90 data-[hover]:bg-white/10"
               >
                 <Avatar
-                  src="https://i.pravatar.cc/40?img=3"
+                  src={`https://api.dicebear.com/7.x/initials/svg?seed=JS&backgroundColor=0369a1`}
                   className="w-8 h-8"
+                  style={{ height: 'auto' }}
                 />
               </Button>
             )}
@@ -170,4 +176,4 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
       </div>
     </aside>
   )
-} 
+}

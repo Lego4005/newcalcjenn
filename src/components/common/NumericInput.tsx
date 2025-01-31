@@ -1,19 +1,29 @@
 import { Input, InputProps } from "@heroui/react";
 
-interface NumericInputProps extends Omit<InputProps, 'onChange'> {
-  value: number;
-  onChange: (value: string) => void;
-  isPercentage?: boolean;
+interface NumericInputProps extends Omit<InputProps, 'onChange' | 'value'> {
+  readonly value?: number;
+  readonly onChange: (value: string) => void;
+  readonly isPercentage?: boolean;
 }
 
-export default function NumericInput({ value, onChange, isPercentage, startContent, ...props }: NumericInputProps) {
+export default function NumericInput({ 
+  value = 0, 
+  onChange, 
+  isPercentage = false, 
+  startContent, 
+  ...props 
+}: NumericInputProps) {
   // Format number for display
-  const formatValue = (num: number) => {
-    if (isPercentage) {
-      return num.toString();
+  const displayValue = (() => {
+    try {
+      if (typeof value !== 'number') return '0';
+      return isPercentage 
+        ? value.toFixed(1)
+        : value.toLocaleString('en-US', { maximumFractionDigits: 0 });
+    } catch {
+      return '0';
     }
-    return startContent ? num.toLocaleString() : num.toString();
-  };
+  })();
 
   // Handle input change
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -21,12 +31,16 @@ export default function NumericInput({ value, onChange, isPercentage, startConte
     onChange(value);
   };
 
+  const inputStartContent = isPercentage 
+    ? <span className="text-default-400">%</span>
+    : startContent;
+
   return (
     <Input
-      value={formatValue(value)}
-      onChange={handleChange}
-      startContent={!isPercentage ? startContent : null}
       {...props}
+      value={displayValue}
+      onChange={handleChange}
+      startContent={inputStartContent}
     />
   );
-} 
+}

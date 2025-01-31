@@ -12,7 +12,7 @@ export function UserSection({ isCollapsed }: UserSectionProps) {
   const { theme, setTheme } = useTheme()
 
   return (
-    <div className={`flex items-center gap-2 ${isCollapsed ? 'justify-center' : 'px-2'}`}>
+    <div role="complementary" className={`flex items-center gap-2 ${isCollapsed ? 'justify-center' : 'px-2'}`}>
       {!isCollapsed && (
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2">

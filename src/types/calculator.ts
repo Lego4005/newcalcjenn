@@ -9,20 +9,46 @@ export interface CalculatorDefaults {
   titleInsuranceExcessRate: number;
 }
 
-export interface CalculatorFormData {
+export interface PropertyDetails {
   salePrice: number;
-  mortgageBalance: number;
-  annualTaxes: number;
-  hoaFees: number;
-  buyerAgentCommission: number;
-  sellerAgentCommission: number;
+  purchaseDate: string;
+}
+
+export interface MortgageInfo {
+  loanBalance: number;
+  hasHOA: boolean;
+}
+
+export interface CommissionStructure {
+  listingAgentRate: number;
+  buyerAgentRate: number;
+}
+
+export interface CostResponsibility {
+  settlementFee: 'seller' | 'buyer';
+  titleSearch: 'seller' | 'buyer';
+  municipalLienSearch: 'seller' | 'buyer';
+  titleInsurance: 'seller' | 'buyer';
+  docStamps: 'seller' | 'buyer';
+}
+
+export interface AdditionalFees {
+  hasPriorTitlePolicy: boolean;
+  priorTitleAmount: number;
+  taxProrations: number;
+  hoaDues: number;
+  hoaEstoppelFee: number;
   settlementFee: number;
   titleSearch: number;
   municipalLienSearch: number;
-  titleInsurance: number;
   docStamps: number;
-  sellerCredits: number;
-  repairCosts: number;
-  customCosts: number;
-  closingDate: string;
-} 
+  titleInsurance: number;
+  costResponsibility: CostResponsibility;
+}
+
+export interface CalculatorFormData {
+  propertyDetails: PropertyDetails;
+  mortgageInfo: MortgageInfo;
+  commissionStructure: CommissionStructure;
+  additionalFees: AdditionalFees;
+}

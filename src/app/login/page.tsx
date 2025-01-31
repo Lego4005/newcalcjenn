@@ -3,10 +3,8 @@
 import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Card, CardBody, Input, Button } from "@heroui/react"
-import Link from 'next/link'
 import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 import { useRouter } from 'next/navigation'
-import { supabaseUrl, supabaseAnonKey } from '@/lib/supabaseClient'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -14,10 +12,7 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState('')
   const router = useRouter()
-  const supabase = createClientComponentClient({
-    supabaseUrl,
-    supabaseKey: supabaseAnonKey,
-  })
+  const supabase = createClientComponentClient()
 
   useEffect(() => {
     const checkSession = async () => {
@@ -33,29 +28,38 @@ export default function LoginPage() {
     checkSession()
   }, [router, supabase.auth])
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
+  const handleSubmit = async () => {
     setIsLoading(true)
     setMessage('')
     
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password
+      const formData = new FormData()
+      formData.append('email', email)
+      formData.append('password', password)
+
+      const response = await fetch('/auth', {
+        method: 'POST',
+        body: formData
       })
 
-      if (error) {
+      const data = await response.json().catch(() => ({ error: 'Failed to parse response' }))
+
+      if (!response.ok) {
+        setMessage(data.error || 'Invalid email or password. Please try again.')
+        return
+      }
+
+      if (!data.user) {
         setMessage('Invalid email or password. Please try again.')
         return
       }
 
-      if (data?.user) {
-        setMessage('Login successful! Redirecting...')
-        router.push('/dashboard')
+      if (data.redirectTo) {
+        router.push(data.redirectTo)
       }
     } catch (error: unknown) {
       if (error instanceof Error) {
-        setMessage(error.message)
+        setMessage(error.message || 'Authentication failed')
       } else {
         setMessage('An unexpected error occurred. Please try again.')
       }
@@ -64,20 +68,26 @@ export default function LoginPage() {
     }
   }
 
+  const handleCreateAccount = () => {
+    router.push('/register')
+  }
+
   return (
-    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-red-950 via-red-900 to-black">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,rgba(0,0,0,0.4),transparent_70%)]" />
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-blue-950 via-black to-black">
+      <div className="absolute inset-0 backdrop-blur-2xl bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.1),transparent_70%)]" />
 
       <div className="relative min-h-screen flex flex-col items-center justify-center p-4">
-        <div className="relative w-[600px] h-[180px] mb-12">
-          <Image
-            src="https://rocatitle.com/wp-content/uploads/2022/03/PNG-01_main_600px_wide_2.png"
-            alt="Roca Title"
-            width={600}
-            height={180}
-            priority
-            className="object-contain w-full h-full"
-          />
+        <div className="relative w-[600px] mb-12">
+          <div className="relative aspect-[10/3]">
+            <Image
+              src="https://rocatitle.com/wp-content/uploads/2022/03/PNG-01_main_600px_wide_2.png"
+              alt="Roca Title"
+              fill
+              priority
+              className="object-contain"
+              sizes="(max-width: 600px) 100vw, 600px"
+            />
+          </div>
         </div>
 
         <p className="text-2xl font-semibold text-white mb-8">
@@ -85,11 +95,11 @@ export default function LoginPage() {
         </p>
 
         <Card
-          className="w-full max-w-md bg-black/80 border border-white/10"
+          className="w-full max-w-md bg-black/80 backdrop-blur-2xl border border-white/10 shadow-2xl"
           shadow="sm"
         >
           <CardBody className="py-8 px-6">
-            <form onSubmit={handleSubmit} className="space-y-6">
+            <form onSubmit={(e) => { e.preventDefault(); handleSubmit(); }} className="space-y-6">
               <Input
                 label="Email"
                 placeholder="Enter your email"
@@ -139,11 +149,12 @@ export default function LoginPage() {
                   Sign In
                 </Button>
 
-                <Link href="/register" className="block w-full">
-                  <Button className="w-full bg-transparent border-2 border-red-600 hover:bg-red-600/10 text-white font-semibold text-lg py-6">
-                    Create Account
-                  </Button>
-                </Link>
+                <Button
+                  className="w-full bg-transparent border-2 border-red-600 hover:bg-red-600/10 text-white font-semibold text-lg py-6"
+                  onPress={handleCreateAccount}
+                >
+                  Create Account
+                </Button>
               </div>
 
               {message && (

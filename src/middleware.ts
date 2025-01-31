@@ -6,13 +6,15 @@ export async function middleware(req: NextRequest) {
   try {
     const res = NextResponse.next()
     const supabase = createMiddlewareClient({ req, res })
-    
-    // Refresh session if expired - required for Server Components
-    await supabase.auth.getSession()
-    
+        
     const {
       data: { session },
-    } = await supabase.auth.getSession()
+    } = await supabase.auth.getSession() // This call also refreshes the session
+
+    // Allow test calculator route without authentication
+    if (req.nextUrl.pathname === '/test/calculator') {
+      return res;
+    }
 
     // If user is signed in and the current path is /login redirect the user to /dashboard
     if (session && req.nextUrl.pathname === '/login') {
@@ -27,12 +29,13 @@ export async function middleware(req: NextRequest) {
     }
 
     return res
-  } catch (e) {
-    // If there's an error, redirect to login
+  } catch (error: unknown) {
+    // Log the error for debugging
+    console.error('Auth middleware error:', error instanceof Error ? error.message : 'Unknown error')
     return NextResponse.redirect(new URL('/login', req.url))
   }
 }
 
 export const config = {
-  matcher: ['/login', '/dashboard/:path*']
-} 
+  matcher: ['/login', '/dashboard/:path*', '/test/calculator']
+}

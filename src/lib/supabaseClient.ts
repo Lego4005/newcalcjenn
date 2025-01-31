@@ -1,8 +1,16 @@
-import { createClient } from '@supabase/supabase-js'
+import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
 
-const supabaseUrl = 'https://iwoddeupzuadnbaydkpv.supabase.co'
-const supabaseAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Iml3b2RkZXVwenVhZG5iYXlka3B2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzgxMTI3ODcsImV4cCI6MjA1MzY4ODc4N30.3s0gU3hSiv5POxIrSdKiZ2j9dF-62lvVXtrtmN5CTIM'
+if (!process.env.NEXT_PUBLIC_SUPABASE_URL) {
+  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_URL')
+}
+if (!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) {
+  throw new Error('Missing env.NEXT_PUBLIC_SUPABASE_ANON_KEY')
+}
 
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+
+// Create a Supabase client for use in the browser
+export const supabase = createClientComponentClient()
 
 export { supabaseUrl, supabaseAnonKey }

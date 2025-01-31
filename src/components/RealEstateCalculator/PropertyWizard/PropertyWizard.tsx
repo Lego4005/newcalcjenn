@@ -1,22 +1,22 @@
 import { useState, useEffect } from 'react';
-import { Card, CardBody, Button, Input, Tooltip, Spinner, Image } from "@heroui/react";
+import { Card, CardBody, Spinner } from "@heroui/react";
 import { motion } from 'framer-motion';
-import { Home, DollarSign, Calendar, Info, Building2, Scale, Bed, Bath, Square, ChevronLeft, ChevronRight } from 'lucide-react';
 import AddressAutocomplete from '../Dashboard/AddressAutocomplete';
-import type { Property } from '@/types/property';
-import type { AddressFeature } from '@/types/address';
-import { fetchPropertyData, fetchTaxAssessment, fetchHOAData, fetchPropertyDetails } from '@/lib/api';
-import PropertyDrawer from './PropertyDrawer';
-import { saveProperty, saveTransaction } from '@/lib/storage';
+import type { Property, TransactionDetails } from '@/types/property';
+import { fetchPropertyDetails } from '@/lib/api';
+import type { PropertyData } from '@/types/api';
+import { useCollaboration } from '@/hooks/useCollaboration';
+import CollaboratorIndicator from './CollaboratorIndicator';
+import { saveProperty } from '@/lib/storage';
 import NumericInput from '@/components/common/NumericInput';
 import { getCalculatorDefaults, calculateTitleInsurance, calculateDocStamps } from '@/lib/calculator';
 import type { CalculatorDefaults } from '@/types/calculator';
 import { supabase } from '@/lib/supabase';
 
 interface PropertyWizardProps {
-  property?: Property;
-  onConfirm: (property: Property) => void;
-  onCancel: () => void;
+  readonly property?: Property;
+  readonly onConfirm: (property: Property) => void;
+  readonly onCancel: () => void;
 }
 
 const steps = [
@@ -52,36 +52,48 @@ const steps = [
   }
 ];
 
-interface PropertyDetailsCard {
-  icon: React.ReactNode;
-  title: string;
-  value: string | number;
-  tooltip?: string;
-  editable?: boolean;
-  onChange?: (value: any) => void;
-}
+const generateUniqueId = () => `property-${Date.now()}-${Math.random().toString(36).substring(2, 11)}`;
 
-interface TransactionDetails {
-  salePrice: number;
-  mortgageBalance: number;
-  annualTaxes: number;
-  hoaFees: number;
-  buyerAgentCommission: number;
-  sellerAgentCommission: number;
-  // Fixed Costs
-  settlementFee: number;
-  titleSearch: number;
-  municipalLienSearch: number;
-  titleInsurance: number;
-  docStamps: number;
-  escrowFee: number;
-  titleFee: number;
-  // Additional Costs
-  sellerCredits: number;
-  repairCosts: number;
-  customCosts: number;
-  closingDate: string;
-}
+const initialPropertyState: Property = {
+  id: generateUniqueId(),
+  status: 'Active',
+  address: '',
+  price: 0,
+  beds: 0,
+  baths: 0,
+  sqft: 0,
+  yearBuilt: 0,
+  lotSize: 0,
+  propertyType: 'Single Family',
+  images: [],
+  source: {
+    name: 'Manual Entry',
+    fetchDate: new Date().toISOString()
+  }
+};
+
+const calculateNetProceeds = (details: TransactionDetails): number => {
+  const salePrice = details.salePrice ?? 0;
+  const mortgageBalance = details.mortgageBalance ?? 0;
+  const buyerCommission = details.buyerAgentCommission ?? 0;
+  const sellerCommission = details.sellerAgentCommission ?? 0;
+  const escrowFee = details.escrowFee ?? 0;
+  const titleFee = details.titleFee ?? 0;
+  const sellerCredits = details.sellerCredits ?? 0;
+  const repairCosts = details.repairCosts ?? 0;
+  const customCosts = details.customCosts ?? 0;
+
+  const totalCommission = (salePrice * (buyerCommission + sellerCommission)) / 100;
+
+  return salePrice - mortgageBalance - totalCommission - escrowFee - titleFee - 
+         sellerCredits - repairCosts - customCosts;
+};
+
+const getStepStyle = (currentStep: number, stepId: number) => {
+  if (currentStep === stepId) return 'bg-white text-primary-900';
+  if (currentStep > stepId) return 'bg-success/90 text-white';
+  return 'bg-white/20 text-white';
+};
 
 export default function PropertyWizard({
   property: initialProperty,
@@ -89,14 +101,27 @@ export default function PropertyWizard({
   onCancel
 }: PropertyWizardProps) {
   const [currentStep, setCurrentStep] = useState(1);
-  const [selectedProperty, setSelectedProperty] = useState<Property | undefined>(initialProperty);
+  const [selectedProperty, setSelectedProperty] = useState<Property>(initialProperty ?? initialPropertyState);
   const [address, setAddress] = useState('');
-  const [error, setError] = useState<string | null>(null);
+  const [error, setError] = useState<string | undefined>();
+  const [propertyDetails, setPropertyDetails] = useState<PropertyData>({
+    id: selectedProperty.id,
+    status: selectedProperty.status,
+    address: selectedProperty.address,
+    price: selectedProperty.price,
+    beds: selectedProperty.beds,
+    baths: selectedProperty.baths,
+    sqft: selectedProperty.sqft,
+    yearBuilt: selectedProperty.yearBuilt,
+    lotSize: selectedProperty.lotSize,
+    propertyType: selectedProperty.propertyType,
+    images: selectedProperty.images
+  });
   const [transactionDetails, setTransactionDetails] = useState<TransactionDetails>({
-    salePrice: initialProperty?.price || 0,
+    salePrice: selectedProperty.price,
     mortgageBalance: 0,
-    annualTaxes: initialProperty?.taxes || 0,
-    hoaFees: initialProperty?.hoaFees || 0,
+    annualTaxes: 0,
+    hoaFees: 0,
     buyerAgentCommission: 3.00,
     sellerAgentCommission: 3.00,
     settlementFee: 595,
@@ -113,168 +138,79 @@ export default function PropertyWizard({
   });
 
   const [isLoading, setIsLoading] = useState(false);
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false);
+  const { collaborators } = useCollaboration(selectedProperty.id);
   const [calculatorDefaults, setCalculatorDefaults] = useState<CalculatorDefaults | null>(null);
 
-  // Fetch calculator defaults on mount
   useEffect(() => {
     async function loadDefaults() {
       const defaults = await getCalculatorDefaults();
-      setCalculatorDefaults(defaults);
+      if (!defaults) return;
       
-      // Update transaction details with defaults
+      setCalculatorDefaults(defaults);
       setTransactionDetails(prev => ({
         ...prev,
-        buyerAgentCommission: defaults.defaultBuyerAgentCommission,
-        sellerAgentCommission: defaults.defaultSellerAgentCommission,
-        settlementFee: defaults.defaultSettlementFee,
-        titleSearch: defaults.defaultTitleSearch,
-        municipalLienSearch: defaults.defaultMunicipalLienSearch
+        buyerAgentCommission: defaults.defaultBuyerAgentCommission ?? prev.buyerAgentCommission,
+        sellerAgentCommission: defaults.defaultSellerAgentCommission ?? prev.sellerAgentCommission,
+        settlementFee: defaults.defaultSettlementFee ?? prev.settlementFee,
+        titleSearch: defaults.defaultTitleSearch ?? prev.titleSearch,
+        municipalLienSearch: defaults.defaultMunicipalLienSearch ?? prev.municipalLienSearch
       }));
     }
     
-    loadDefaults();
+    void loadDefaults();
   }, []);
 
-  // Update calculated values when sale price changes
   useEffect(() => {
-    if (calculatorDefaults && transactionDetails.salePrice) {
-      const titleInsurance = calculateTitleInsurance(transactionDetails.salePrice, calculatorDefaults);
-      const docStamps = calculateDocStamps(transactionDetails.salePrice, calculatorDefaults);
-      
-      setTransactionDetails(prev => ({
-        ...prev,
-        titleInsurance,
-        docStamps
-      }));
-    }
+    if (!calculatorDefaults || !transactionDetails.salePrice) return;
+    
+    const titleInsurance = calculateTitleInsurance(
+      transactionDetails.salePrice,
+      false,
+      0,
+      calculatorDefaults.titleInsuranceBaseRate,
+      calculatorDefaults.titleInsuranceExcessRate
+    );
+    
+    const docStamps = calculateDocStamps(
+      transactionDetails.salePrice,
+      calculatorDefaults.defaultDocStampRate
+    );
+    
+    setTransactionDetails(prev => ({
+      ...prev,
+      titleInsurance,
+      docStamps
+    }));
   }, [transactionDetails.salePrice, calculatorDefaults]);
-
-  // Add property details state
-  const [propertyDetails, setPropertyDetails] = useState({
-    address: '',
-    price: 0,
-    beds: 0,
-    baths: 0,
-    sqft: 0,
-    yearBuilt: 0,
-    pricePerSqft: 0,
-    marketValue: 0,
-    images: [] as string[],
-    taxes: 0,
-    hoaFees: 0,
-    zestimate: 0,
-    description: '',
-    lotSize: 0,
-    parkingSpaces: 0,
-    propertyType: '',
-    lastSoldPrice: 0,
-    lastSoldDate: '',
-    priceHistory: [] as Array<{date: string; price: number; event: string}>,
-    features: [] as string[],
-    schools: [] as Array<{name: string; rating: number; distance: number; type: string}>,
-    walkScore: 0,
-    transitScore: 0
-  });
-
-  // Add state for current image index
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  // Add state to track input sources
-  const [inputSources, setInputSources] = useState({
-    salePrice: 'zillow',
-    mortgageBalance: 'user',
-    taxes: 'zillow',
-    hoaFees: 'zillow'
-  });
-
-  // Calculate prorated taxes
-  const calculateProratedTaxes = () => {
-    const closingDate = new Date(transactionDetails.closingDate);
-    const startOfYear = new Date(closingDate.getFullYear(), 0, 1);
-    const daysOwned = Math.floor((closingDate.getTime() - startOfYear.getTime()) / (1000 * 60 * 60 * 24));
-    return (propertyDetails.taxes * daysOwned) / 365;
-  };
-
-  // Calculate estimated net proceeds
-  const calculateNetProceeds = () => {
-    const totalCommission = (transactionDetails.buyerAgentCommission + transactionDetails.sellerAgentCommission) 
-      * transactionDetails.salePrice / 100;
-    const closingCosts = transactionDetails.escrowFee + transactionDetails.titleFee;
-    const proratedTaxes = calculateProratedTaxes();
-    const additionalCosts = transactionDetails.sellerCredits + transactionDetails.repairCosts + transactionDetails.customCosts;
-
-    return transactionDetails.salePrice - totalCommission - closingCosts - proratedTaxes - 
-           transactionDetails.mortgageBalance - transactionDetails.hoaFees - additionalCosts;
-  };
 
   const handleNext = () => {
     if (currentStep < steps.length) {
-      // Save transaction details on each step
-      if (selectedProperty?.id) {
-        const dbTransaction = {
-          property_id: selectedProperty.id,
-          sale_price: transactionDetails.salePrice,
-          mortgage_balance: transactionDetails.mortgageBalance,
-          hoa_fees: transactionDetails.hoaFees,
-          buyer_agent_commission: transactionDetails.buyerAgentCommission,
-          seller_agent_commission: transactionDetails.sellerAgentCommission,
-          escrow_fee: transactionDetails.escrowFee,
-          title_fee: transactionDetails.titleFee,
-          seller_credits: transactionDetails.sellerCredits,
-          repair_costs: transactionDetails.repairCosts,
-          custom_costs: transactionDetails.customCosts,
-          closing_date: transactionDetails.closingDate
-        };
-        saveTransaction(selectedProperty.id, dbTransaction);
-      }
       setCurrentStep(currentStep + 1);
     } else {
-      // Final confirmation
-      if (selectedProperty?.id) {
-        const dbTransaction = {
-          property_id: selectedProperty.id,
-          sale_price: transactionDetails.salePrice,
-          mortgage_balance: transactionDetails.mortgageBalance,
-          hoa_fees: transactionDetails.hoaFees,
-          buyer_agent_commission: transactionDetails.buyerAgentCommission,
-          seller_agent_commission: transactionDetails.sellerAgentCommission,
-          escrow_fee: transactionDetails.escrowFee,
-          title_fee: transactionDetails.titleFee,
-          seller_credits: transactionDetails.sellerCredits,
-          repair_costs: transactionDetails.repairCosts,
-          custom_costs: transactionDetails.customCosts,
-          closing_date: transactionDetails.closingDate
-        };
-        saveTransaction(selectedProperty.id, dbTransaction);
-      }
-      // Pass both property and transaction details back
-      const finalProperty = {
+      const finalProperty: Property = {
         ...selectedProperty,
-        ...propertyDetails,
-        transactionDetails: transactionDetails,
-        images: propertyDetails.images,
+        address: propertyDetails.address ?? '',
+        price: propertyDetails.price ?? 0,
+        beds: propertyDetails.beds ?? 0,
+        baths: propertyDetails.baths ?? 0,
+        sqft: propertyDetails.sqft ?? 0,
+        yearBuilt: propertyDetails.yearBuilt ?? 0,
+        lotSize: propertyDetails.lotSize ?? 0,
+        propertyType: propertyDetails.propertyType ?? 'Single Family',
+        images: propertyDetails.images ?? [],
+        status: 'Active',
+        transactionDetails,
         source: {
           name: 'User',
           fetchDate: new Date().toISOString()
         }
       };
 
-      // Save to localStorage for the sidebar
-      const savedProperty = saveProperty({
-        ...finalProperty,
-        price: transactionDetails.salePrice,
-        taxes: transactionDetails.annualTaxes,
-        hoaFees: transactionDetails.hoaFees,
-        mortgageBalance: transactionDetails.mortgageBalance,
-        status: 'Active'
-      });
-
-      onConfirm(savedProperty);
+      void saveProperty(finalProperty).then(onConfirm);
     }
   };
 
-  const handleBack = () => {
+  const handlePrevious = () => {
     if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     } else {
@@ -282,214 +218,61 @@ export default function PropertyWizard({
     }
   };
 
-  const handleAddressSelect = async (feature: AddressFeature) => {
+  const handleAddressSelect = async (feature: { place_name: string }) => {
     try {
-      setError(null);
+      setError(undefined);
       setIsLoading(true);
       
       const fullAddress = feature.place_name;
-
-      // Fetch and save new property
       const propertyData = await fetchPropertyDetails(fullAddress);
-      console.log('Fetched property data:', propertyData);
-
-      // Check if property already exists
+      
+      // Check for existing property
       const { data: existingProperties } = await supabase
-        .from('properties')
+        .from('saved_calculations')
         .select('*')
         .eq('address', fullAddress)
         .order('created_at', { ascending: false })
         .limit(1);
 
-      let storedProperty;
-      
-      if (existingProperties && existingProperties.length > 0) {
-        // Update existing property with new data
-        const existingProperty = existingProperties[0];
-        storedProperty = await saveProperty({
-          ...propertyData,
-          id: existingProperty.id
-        });
-        
-        // Delete any existing transactions
-        await supabase
-          .from('transactions')
-          .delete()
-          .eq('property_id', existingProperty.id);
-      } else {
-        // Save new property
-        storedProperty = await saveProperty(propertyData);
+      // Validate required fields
+      if (!propertyData.address || !propertyData.price) {
+        throw new Error('Missing required property data');
       }
-      
-      // Set initial transaction details with default values
-      const initialTransactionDetails = {
-        salePrice: propertyData.price || 3345400,
-        mortgageBalance: 0,
-        hoaFees: propertyData.hoaFees || 0,
-        buyerAgentCommission: 3.00,
-        sellerAgentCommission: 3.00,
-        escrowFee: 595,
-        titleFee: 175,
-        sellerCredits: 0,
-        repairCosts: 0,
-        customCosts: 0,
-        closingDate: new Date().toISOString().split('T')[0]
+
+      // Prepare property data
+      const newPropertyData: Property = {
+        id: existingProperties?.[0]?.id || generateUniqueId(),
+        address: propertyData.address,
+        price: propertyData.price,
+        beds: propertyData.beds ?? 0,
+        baths: propertyData.baths ?? 0,
+        sqft: propertyData.sqft ?? 0,
+        yearBuilt: propertyData.yearBuilt ?? 0,
+        lotSize: propertyData.lotSize ?? 0,
+        propertyType: propertyData.propertyType ?? 'Single Family',
+        images: propertyData.images ?? [],
+        status: 'Active',
+        source: {
+          name: 'Zillow API',
+          fetchDate: new Date().toISOString()
+        }
       };
       
-      setTransactionDetails(initialTransactionDetails);
-
-      // Save new transaction with snake_case fields
-      const dbTransaction = {
-        property_id: storedProperty.id,
-        sale_price: propertyData.price || 3345400,
-        mortgage_balance: 0,
-        hoa_fees: propertyData.hoaFees || 0,
-        buyer_agent_commission: 3.00,
-        seller_agent_commission: 3.00,
-        escrow_fee: 595,
-        title_fee: 175,
-        seller_credits: 0,
-        repair_costs: 0,
-        custom_costs: 0,
-        closing_date: new Date().toISOString().split('T')[0]
-      };
+      const storedProperty = await saveProperty(newPropertyData);
       
-      await saveTransaction(storedProperty.id, dbTransaction);
-
-      setSelectedProperty(storedProperty);
-      setPropertyDetails({
-        address: storedProperty.address,
-        price: propertyData.price || 3345400,
-        beds: storedProperty.beds || 0,
-        baths: storedProperty.baths || 0,
-        sqft: storedProperty.sqft || 0,
-        yearBuilt: storedProperty.yearBuilt || 0,
-        pricePerSqft: storedProperty.pricePerSqft || 0,
-        marketValue: storedProperty.marketValue || 0,
-        images: storedProperty.images || [],
-        taxes: storedProperty.taxes || 0,
-        hoaFees: storedProperty.hoaFees || 0,
-        zestimate: storedProperty.marketValue || 0,
-        description: '',
-        lotSize: storedProperty.lotSize || 0,
-        parkingSpaces: 0,
-        propertyType: storedProperty.propertyType || '',
-        lastSoldPrice: 0,
-        lastSoldDate: '',
-        priceHistory: [],
-        features: [],
-        schools: [],
-        walkScore: 0,
-        transitScore: 0
-      });
-
-      // Move to step 2 (Sale Details) after property is selected
-      setCurrentStep(2);
-
-    } catch (error) {
-      console.error('Error in handleAddressSelect:', error);
-      setError('Failed to fetch property details. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const propertyDetailsCards: PropertyDetailsCard[] = [
-    {
-      icon: <DollarSign className="w-6 h-6 text-success" />,
-      title: "Sale Price",
-      value: selectedProperty?.price || 0,
-      tooltip: "The agreed-upon sale price of the property",
-      editable: true,
-      onChange: (value) => setSelectedProperty(prev => prev ? { ...prev, price: parseInt(value) } : undefined)
-    },
-    {
-      icon: <Scale className="w-6 h-6 text-warning" />,
-      title: "Annual Property Taxes",
-      value: selectedProperty?.taxes || 0,
-      tooltip: "Current annual property tax amount - will be prorated based on closing date",
-      editable: true,
-      onChange: (value) => setSelectedProperty(prev => prev ? { ...prev, taxes: parseInt(value) } : undefined)
-    },
-    {
-      icon: <Calendar className="w-6 h-6 text-primary" />,
-      title: "Tax Due Date",
-      value: selectedProperty?.taxDueDate || new Date().toISOString().split('T')[0],
-      tooltip: "Next property tax payment due date - important for accurate proration",
-      editable: true,
-      onChange: (value) => setSelectedProperty(prev => prev ? { ...prev, taxDueDate: value } : undefined)
-    },
-    {
-      icon: <DollarSign className="w-6 h-6 text-danger" />,
-      title: "Outstanding Mortgage",
-      value: selectedProperty?.mortgageBalance || 0,
-      tooltip: "Current mortgage balance to be paid off at closing",
-      editable: true,
-      onChange: (value) => setSelectedProperty(prev => prev ? { ...prev, mortgageBalance: parseInt(value) } : undefined)
-    }
-  ];
-
-  const handleInputChange = (field: string, value: string) => {
-    const numericValue = parseFloat(value.replace(/,/g, '')) || 0;
-    
-    // Update source to 'user' when they modify a value
-    setInputSources(prev => ({
-      ...prev,
-      [field]: 'user'
-    }));
-    
-    if (field === 'taxes' || field === 'hoaFees') {
-      setPropertyDetails(prev => ({
-        ...prev,
-        [field]: numericValue
-      }));
-    } else {
       setTransactionDetails(prev => ({
         ...prev,
-        [field]: numericValue
+        salePrice: propertyData.price ?? prev.salePrice,
+        hoaFees: propertyData.hoaFees ?? prev.hoaFees,
+        annualTaxes: propertyData.taxes ?? prev.annualTaxes
       }));
-    }
-  };
-
-  const handleSearch = async () => {
-    if (!address) return;
-    
-    try {
-      setError(null);
-      setIsLoading(true);
       
-      const propertyData = await fetchPropertyDetails(address);
-      console.log('Fetched property data:', propertyData);
-      
-      if (propertyData) {
-        const storedProperty = await saveProperty(propertyData);
-        
-        const newTransactionDetails = {
-          salePrice: propertyData.price || transactionDetails.salePrice,
-          mortgageBalance: transactionDetails.mortgageBalance,
-          hoaFees: propertyData.hoaFees || transactionDetails.hoaFees,
-          buyerAgentCommission: transactionDetails.buyerAgentCommission,
-          sellerAgentCommission: transactionDetails.sellerAgentCommission,
-          escrowFee: transactionDetails.escrowFee,
-          titleFee: transactionDetails.titleFee,
-          sellerCredits: transactionDetails.sellerCredits,
-          repairCosts: transactionDetails.repairCosts,
-          customCosts: transactionDetails.customCosts,
-          closingDate: transactionDetails.closingDate
-        };
-        
-        setTransactionDetails(newTransactionDetails);
-        
-        if (storedProperty.id) {
-          saveTransaction(storedProperty.id, newTransactionDetails);
-        }
-        
-        setSelectedProperty(storedProperty);
-        onConfirm(storedProperty);
-      }
-    } catch (error) {
-      console.error('Error in handleSearch:', error);
-      setError('Failed to fetch property details. Please try again.');
+      setSelectedProperty(storedProperty);
+      setPropertyDetails(newPropertyData);
+      setCurrentStep(2);
+    } catch (err) {
+      console.error('Error in handleAddressSelect:', err);
+      setError(err instanceof Error ? err.message : 'Failed to fetch property details');
     } finally {
       setIsLoading(false);
     }
@@ -501,9 +284,16 @@ export default function PropertyWizard({
         <Card className="w-full max-w-[1200px] mx-auto my-4">
           <CardBody className="p-0">
             <div className="flex h-[calc(100vh-2rem)]">
-              {/* Left Sidebar - Fixed */}
+              {/* Navigation Steps */}
               <div className="w-[380px] bg-gradient-to-b from-primary-900 to-primary-800 text-white p-12 overflow-y-auto">
                 <div className="space-y-8">
+                  {collaborators.length > 0 && (
+                    <CollaboratorIndicator
+                      collaborators={collaborators}
+                      className="mb-6"
+                    />
+                  )}
+                  
                   <div>
                     <h2 className="text-2xl font-bold mb-3">Net Seller Calculator</h2>
                     <p className="text-lg text-white/80">Calculate your estimated proceeds from the sale.</p>
@@ -514,9 +304,7 @@ export default function PropertyWizard({
                       <div key={step.id} className="flex items-start gap-6">
                         <div className={`
                           w-10 h-10 rounded-full flex items-center justify-center shrink-0 text-lg font-semibold
-                          ${currentStep === step.id ? 'bg-white text-primary-900' : 
-                            currentStep > step.id ? 'bg-success/90 text-white' : 'bg-white/20 text-white'}
-                          transition-all duration-200
+                          ${getStepStyle(currentStep, step.id)}
                         `}>
                           {currentStep > step.id ? '✓' : step.id}
                         </div>
@@ -530,7 +318,7 @@ export default function PropertyWizard({
                 </div>
               </div>
 
-              {/* Right Content - Scrollable */}
+              {/* Content Area */}
               <div className="flex-1 flex flex-col h-full bg-background">
                 <div className="flex-1 p-12 overflow-y-auto">
                   <motion.div
@@ -540,22 +328,22 @@ export default function PropertyWizard({
                     exit={{ opacity: 0, x: -20 }}
                     className="h-full"
                   >
-                    {currentStep === 1 ? (
+                    {currentStep === 1 && (
                       <div className="space-y-6">
                         <div>
                           <h3 className="text-2xl font-semibold mb-2">Property Location</h3>
                           <p className="text-default-500">Enter the property address to fetch available data.</p>
                         </div>
                         <div className="bg-content1 p-8 rounded-xl">
-                          <AddressAutocomplete
-                            value={address}
-                            onChange={setAddress}
-                            onSelect={handleAddressSelect}
-                            error={error}
-                            placeholder="Enter property address"
-                            className="text-lg"
-                            isDisabled={isLoading}
-                          />
+                          <div className="form-group">
+                            <AddressAutocomplete
+                              value={address}
+                              onChange={setAddress}
+                              onSelect={handleAddressSelect}
+                              error={error}
+                              isLoading={isLoading}
+                            />
+                          </div>
                           {isLoading && (
                             <div className="mt-4 flex items-center gap-2 text-primary">
                               <Spinner size="sm" />
@@ -569,269 +357,311 @@ export default function PropertyWizard({
                           )}
                         </div>
                       </div>
-                    ) : null}
+                    )}
 
-                    {currentStep === 2 ? (
+                    {currentStep === 2 && (
                       <div className="space-y-6">
                         <div>
                           <h3 className="text-2xl font-semibold mb-2">Sale Details</h3>
                           <p className="text-default-500">Confirm or enter the primary financial information.</p>
                         </div>
                         <div className="bg-content1 p-8 rounded-xl space-y-6">
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <div className="flex items-center gap-2">
-                                <label className="text-sm font-medium">Sale Price</label>
-                                <Tooltip content="The agreed-upon sale price of the property">
-                                  <Info className="w-4 h-4 text-default-400 cursor-help" />
-                                </Tooltip>
-                              </div>
-                              <span className={`text-xs ${inputSources.salePrice === 'zillow' ? 'text-success' : 'text-warning'}`}>
-                                Source: {inputSources.salePrice}
+                          <div className="form-group">
+                            <label htmlFor="sale-price" className="block text-sm font-medium mb-2">
+                              Sale Price
+                              <span className="ml-2 text-xs text-default-400">
+                                (Source: {propertyDetails.price ? 'API' : 'Manual'})
                               </span>
-                            </div>
-                            <Button
-                              variant="flat"
-                              className="w-full justify-between px-4 py-3 h-auto"
-                              onPress={() => setIsDrawerOpen(true)}
-                            >
-                              <span>${transactionDetails.salePrice.toLocaleString()}</span>
-                              <span className="text-default-400">Edit</span>
-                            </Button>
+                            </label>
+                            <NumericInput
+                              id="sale-price"
+                              value={transactionDetails.salePrice}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                salePrice: parseFloat(value) || 0
+                              }))}
+                            />
                           </div>
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <div className="flex items-center gap-2">
-                                <label className="text-sm font-medium">Outstanding Mortgage Balance</label>
-                                <Tooltip content="Current mortgage balance to be paid off at closing">
-                                  <Info className="w-4 h-4 text-default-400 cursor-help" />
-                                </Tooltip>
-                              </div>
-                              <span className={`text-xs ${inputSources.mortgageBalance === 'user' ? 'text-warning' : 'text-success'}`}>
-                                Source: {inputSources.mortgageBalance}
-                              </span>
-                            </div>
-                            <Button
-                              variant="flat"
-                              className="w-full justify-between px-4 py-3 h-auto"
-                              onPress={() => setIsDrawerOpen(true)}
-                            >
-                              <span>${transactionDetails.mortgageBalance.toLocaleString()}</span>
-                              <span className="text-default-400">Edit</span>
-                            </Button>
+
+                          <div className="form-group">
+                            <label htmlFor="mortgage-balance" className="block text-sm font-medium mb-2">
+                              Outstanding Mortgage Balance
+                            </label>
+                            <NumericInput
+                              id="mortgage-balance"
+                              value={transactionDetails.mortgageBalance}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                mortgageBalance: parseFloat(value) || 0
+                              }))}
+                            />
                           </div>
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <div className="flex items-center gap-2">
-                                <label className="text-sm font-medium">Annual Property Taxes</label>
-                                <Tooltip content="Current annual property tax amount - Zillow's estimate is often inaccurate, please verify">
-                                  <Info className="w-4 h-4 text-warning cursor-help" />
-                                </Tooltip>
-                              </div>
-                              <span className={`text-xs ${inputSources.taxes === 'zillow' ? 'text-warning' : 'text-success'}`}>
-                                Source: {inputSources.taxes}
+
+                          <div className="form-group">
+                            <label htmlFor="annual-taxes" className="block text-sm font-medium mb-2">
+                              Annual Property Taxes
+                              {' '}
+                              <span className="ml-2 text-xs text-default-400">
+                                (Source: {transactionDetails.annualTaxes ? 'API' : 'Manual'})
                               </span>
-                            </div>
-                            <Button
-                              variant="flat"
-                              className="w-full justify-between px-4 py-3 h-auto"
-                              onPress={() => setIsDrawerOpen(true)}
-                            >
-                              <span>${propertyDetails.taxes.toLocaleString()}</span>
-                              <span className="text-default-400">Edit</span>
-                            </Button>
+                            </label>
+                            <NumericInput
+                              id="annual-taxes"
+                              value={transactionDetails.annualTaxes}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                annualTaxes: parseFloat(value) || 0
+                              }))}
+                            />
                           </div>
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <div className="flex items-center gap-2">
-                                <label className="text-sm font-medium">Monthly HOA Fees</label>
-                                <Tooltip content="Monthly homeowner association fees, if applicable">
-                                  <Info className="w-4 h-4 text-default-400 cursor-help" />
-                                </Tooltip>
-                              </div>
-                              <span className={`text-xs ${inputSources.hoaFees === 'zillow' ? 'text-success' : 'text-warning'}`}>
-                                Source: {inputSources.hoaFees}
+
+                          <div className="form-group">
+                            <label htmlFor="hoa-fees" className="block text-sm font-medium mb-2">
+                              Monthly HOA Fees
+                              {' '}
+                              <span className="ml-2 text-xs text-default-400">
+                                (Source: {transactionDetails.hoaFees ? 'API' : 'Manual'})
                               </span>
-                            </div>
-                            <Button
-                              variant="flat"
-                              className="w-full justify-between px-4 py-3 h-auto"
-                              onPress={() => setIsDrawerOpen(true)}
-                            >
-                              <span>${propertyDetails.hoaFees.toLocaleString()}</span>
-                              <span className="text-default-400">Edit</span>
-                            </Button>
+                            </label>
+                            <NumericInput
+                              id="hoa-fees"
+                              value={transactionDetails.hoaFees}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                hoaFees: parseFloat(value) || 0
+                              }))}
+                            />
                           </div>
                         </div>
                       </div>
-                    ) : null}
+                    )}
 
-                    {currentStep === 3 ? (
+                    {currentStep === 3 && (
                       <div className="space-y-6">
                         <div>
                           <h3 className="text-2xl font-semibold mb-2">Commission & Fees</h3>
                           <p className="text-default-500">Enter commission rates and standard fees.</p>
                         </div>
                         <div className="bg-content1 p-8 rounded-xl space-y-6">
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <label className="text-sm font-medium">Buyer's Agent Commission</label>
-                              <span className="text-xs text-default-400">Default: 3.00%</span>
-                            </div>
+                          <div className="form-group">
+                            <label htmlFor="buyer-commission" className="block text-sm font-medium mb-2">
+                              Buyer&apos;s Agent Commission (%)
+                            </label>
                             <NumericInput
+                              id="buyer-commission"
                               value={transactionDetails.buyerAgentCommission}
-                              onChange={(value) => handleInputChange('buyerAgentCommission', value)}
-                              placeholder="Enter buyer's agent commission"
-                              endContent={<span className="text-default-400">%</span>}
-                              startContent={null}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                buyerAgentCommission: parseFloat(value) || 0
+                              }))}
                               isPercentage
                             />
                           </div>
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <label className="text-sm font-medium">Seller's Agent Commission</label>
-                              <span className="text-xs text-default-400">Default: 3.00%</span>
-                            </div>
+
+                          <div className="form-group">
+                            <label htmlFor="seller-commission" className="block text-sm font-medium mb-2">
+                              Seller&apos;s Agent Commission (%)
+                            </label>
                             <NumericInput
+                              id="seller-commission"
                               value={transactionDetails.sellerAgentCommission}
-                              onChange={(value) => handleInputChange('sellerAgentCommission', value)}
-                              placeholder="Enter seller's agent commission"
-                              endContent={<span className="text-default-400">%</span>}
-                              startContent={null}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                sellerAgentCommission: parseFloat(value) || 0
+                              }))}
                               isPercentage
                             />
                           </div>
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <label className="text-sm font-medium">Escrow Fee</label>
-                              <span className="text-xs text-default-400">Default: $595</span>
-                            </div>
+
+                          <div className="form-group">
+                            <label htmlFor="escrow-fee" className="block text-sm font-medium mb-2">
+                              Escrow Fee
+                            </label>
                             <NumericInput
+                              id="escrow-fee"
                               value={transactionDetails.escrowFee}
-                              onChange={(value) => handleInputChange('escrowFee', value)}
-                              placeholder="Enter escrow fee"
-                              startContent={<DollarSign className="text-default-400" size={16} />}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                escrowFee: parseFloat(value) || 0
+                              }))}
                             />
                           </div>
-                          <div>
-                            <div className="flex justify-between items-center mb-2">
-                              <label className="text-sm font-medium">Title Fee</label>
-                              <span className="text-xs text-default-400">Default: $175</span>
-                            </div>
+
+                          <div className="form-group">
+                            <label htmlFor="title-fee" className="block text-sm font-medium mb-2">
+                              Title Fee
+                            </label>
                             <NumericInput
+                              id="title-fee"
                               value={transactionDetails.titleFee}
-                              onChange={(value) => handleInputChange('titleFee', value)}
-                              placeholder="Enter title fee"
-                              startContent={<DollarSign className="text-default-400" size={16} />}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                titleFee: parseFloat(value) || 0
+                              }))}
                             />
                           </div>
                         </div>
                       </div>
-                    ) : null}
+                    )}
 
-                    {currentStep === 4 ? (
+                    {currentStep === 4 && (
                       <div className="space-y-6">
                         <div>
                           <h3 className="text-2xl font-semibold mb-2">Additional Costs</h3>
                           <p className="text-default-500">Enter any credits, repairs, or custom costs.</p>
                         </div>
                         <div className="bg-content1 p-8 rounded-xl space-y-6">
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Seller Credits</label>
+                          <div className="form-group">
+                            <label htmlFor="seller-credits" className="block text-sm font-medium mb-2">
+                              Seller Credits
+                            </label>
                             <NumericInput
+                              id="seller-credits"
                               value={transactionDetails.sellerCredits}
-                              onChange={(value) => handleInputChange('sellerCredits', value)}
-                              placeholder="Enter seller credits"
-                              startContent={<DollarSign className="text-default-400" size={16} />}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                sellerCredits: parseFloat(value) || 0
+                              }))}
                             />
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Repair Costs</label>
+
+                          <div className="form-group">
+                            <label htmlFor="repair-costs" className="block text-sm font-medium mb-2">
+                              Repair Costs
+                            </label>
                             <NumericInput
+                              id="repair-costs"
                               value={transactionDetails.repairCosts}
-                              onChange={(value) => handleInputChange('repairCosts', value)}
-                              placeholder="Enter repair costs"
-                              startContent={<DollarSign className="text-default-400" size={16} />}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                repairCosts: parseFloat(value) || 0
+                              }))}
                             />
                           </div>
-                          <div>
-                            <label className="block text-sm font-medium mb-2">Custom Costs</label>
+
+                          <div className="form-group">
+                            <label htmlFor="custom-costs" className="block text-sm font-medium mb-2">
+                              Custom Costs
+                            </label>
                             <NumericInput
+                              id="custom-costs"
                               value={transactionDetails.customCosts}
-                              onChange={(value) => handleInputChange('customCosts', value)}
-                              placeholder="Enter custom costs"
-                              startContent={<DollarSign className="text-default-400" size={16} />}
+                              onChange={(value) => setTransactionDetails(prev => ({
+                                ...prev,
+                                customCosts: parseFloat(value) || 0
+                              }))}
                             />
                           </div>
                         </div>
                       </div>
-                    ) : null}
+                    )}
 
-                    {currentStep === 5 ? (
+                    {currentStep === 5 && (
                       <div className="space-y-6">
                         <div>
                           <h3 className="text-2xl font-semibold mb-2">Review & Calculate</h3>
                           <p className="text-default-500">Review all inputs and see preliminary calculation.</p>
                         </div>
                         <div className="bg-content1 p-8 rounded-xl space-y-6">
-                          <div className="grid grid-cols-2 gap-6">
+                          <div className="grid grid-cols-2 gap-8">
                             <div>
-                              <h4 className="font-semibold mb-4">Property Details</h4>
-                              <div className="space-y-2">
-                                <p><span className="text-default-500">Address:</span> {propertyDetails.address}</p>
-                                <p><span className="text-default-500">Sale Price:</span> ${transactionDetails.salePrice.toLocaleString()}</p>
-                                <p><span className="text-default-500">Mortgage Balance:</span> ${transactionDetails.mortgageBalance.toLocaleString()}</p>
-                                <p><span className="text-default-500">Annual Taxes:</span> ${propertyDetails.taxes.toLocaleString()}</p>
-                                <p><span className="text-default-500">Monthly HOA:</span> ${propertyDetails.hoaFees.toLocaleString()}</p>
-                              </div>
+                              <h4 className="text-lg font-semibold mb-4">Property Details</h4>
+                              <dl className="space-y-2">
+                                <div className="flex justify-between">
+                                  <dt className="text-default-500">Address:</dt>
+                                  <dd>{propertyDetails.address}</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-default-500">Sale Price:</dt>
+                                  <dd>${(transactionDetails.salePrice ?? 0).toLocaleString()}</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-default-500">Mortgage Balance:</dt>
+                                  <dd>${(transactionDetails.mortgageBalance ?? 0).toLocaleString()}</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-default-500">Annual Taxes:</dt>
+                                  <dd>${(transactionDetails.annualTaxes ?? 0).toLocaleString()}</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-default-500">Monthly HOA:</dt>
+                                  <dd>${(transactionDetails.hoaFees ?? 0).toLocaleString()}</dd>
+                                </div>
+                              </dl>
                             </div>
+
                             <div>
-                              <h4 className="font-semibold mb-4">Commission & Fees</h4>
-                              <div className="space-y-2">
-                                <p><span className="text-default-500">Buyer's Agent:</span> {transactionDetails.buyerAgentCommission}%</p>
-                                <p><span className="text-default-500">Seller's Agent:</span> {transactionDetails.sellerAgentCommission}%</p>
-                                <p><span className="text-default-500">Escrow Fee:</span> ${transactionDetails.escrowFee.toLocaleString()}</p>
-                                <p><span className="text-default-500">Title Fee:</span> ${transactionDetails.titleFee.toLocaleString()}</p>
-                              </div>
+                              <h4 className="text-lg font-semibold mb-4">Commission & Fees</h4>
+                              <dl className="space-y-2">
+                                <div className="flex justify-between">
+                                  <dt className="text-default-500">Buyer&apos;s Agent:</dt>
+                                  <dd>{transactionDetails.buyerAgentCommission ?? 0}%</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-default-500">Seller&apos;s Agent:</dt>
+                                  <dd>{transactionDetails.sellerAgentCommission ?? 0}%</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-default-500">Escrow Fee:</dt>
+                                  <dd>${(transactionDetails.escrowFee ?? 0).toLocaleString()}</dd>
+                                </div>
+                                <div className="flex justify-between">
+                                  <dt className="text-default-500">Title Fee:</dt>
+                                  <dd>${(transactionDetails.titleFee ?? 0).toLocaleString()}</dd>
+                                </div>
+                              </dl>
                             </div>
                           </div>
+
                           <div className="mt-8">
-                            <h4 className="font-semibold mb-4">Additional Costs</h4>
-                            <div className="space-y-2">
-                              <p><span className="text-default-500">Seller Credits:</span> ${transactionDetails.sellerCredits.toLocaleString()}</p>
-                              <p><span className="text-default-500">Repair Costs:</span> ${transactionDetails.repairCosts.toLocaleString()}</p>
-                              <p><span className="text-default-500">Custom Costs:</span> ${transactionDetails.customCosts.toLocaleString()}</p>
-                            </div>
+                            <h4 className="text-lg font-semibold mb-4">Additional Costs</h4>
+                            <dl className="space-y-2">
+                              <div className="flex justify-between">
+                                <dt className="text-default-500">Seller Credits:</dt>
+                                <dd>${(transactionDetails.sellerCredits ?? 0).toLocaleString()}</dd>
+                              </div>
+                              <div className="flex justify-between">
+                                <dt className="text-default-500">Repair Costs:</dt>
+                                <dd>${(transactionDetails.repairCosts ?? 0).toLocaleString()}</dd>
+                              </div>
+                              <div className="flex justify-between">
+                                <dt className="text-default-500">Custom Costs:</dt>
+                                <dd>${(transactionDetails.customCosts ?? 0).toLocaleString()}</dd>
+                              </div>
+                            </dl>
                           </div>
+
                           <div className="mt-8 pt-8 border-t">
-                            <h4 className="font-semibold text-xl mb-2">Estimated Net Proceeds</h4>
-                            <p className="text-3xl font-bold text-success">${calculateNetProceeds().toLocaleString()}</p>
+                            <div className="flex justify-between items-center">
+                              <h4 className="text-xl font-semibold">Estimated Net Proceeds</h4>
+                              <div className="text-3xl font-bold text-success">
+                                ${calculateNetProceeds(transactionDetails).toLocaleString()}
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
-                    ) : null}
+                    )}
                   </motion.div>
                 </div>
-
-                {/* Navigation Buttons - Fixed at bottom */}
-                <div className="flex justify-between p-6 border-t border-divider bg-background">
-                  <Button
-                    variant="flat"
-                    onPress={handleBack}
-                    size="lg"
-                    className="min-w-[120px]"
-                  >
-                    {currentStep === 1 ? 'Cancel' : 'Back'}
-                  </Button>
-                  <Button
-                    color="primary"
-                    onPress={handleNext}
-                    size="lg"
-                    className="min-w-[120px]"
-                    isDisabled={currentStep === 1 && !selectedProperty?.address}
-                  >
-                    {currentStep === steps.length ? 'Confirm' : 'Next'}
-                  </Button>
+                
+                {/* Navigation Buttons */}
+                <div className="p-6 border-t border-divider">
+                  <div className="flex justify-between">
+                    <button
+                      onClick={handlePrevious}
+                      className="px-4 py-2 text-default-600 hover:text-default-900"
+                    >
+                      {currentStep === 1 ? 'Cancel' : 'Previous'}
+                    </button>
+                    <button
+                      onClick={handleNext}
+                      className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-600"
+                      disabled={currentStep === 1 && !selectedProperty.address}
+                    >
+                      {currentStep === steps.length ? 'Complete' : 'Next'}
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
@@ -840,4 +670,4 @@ export default function PropertyWizard({
       </div>
     </div>
   );
-} 
+}

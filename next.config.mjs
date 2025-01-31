@@ -2,7 +2,7 @@
 const nextConfig = {
   images: {
     dangerouslyAllowSVG: true,
-    domains: ['localhost'],
+    domains: ['localhost', 'rocatitle.com'],
     remotePatterns: [
       {
         protocol: 'https',
@@ -12,8 +12,9 @@ const nextConfig = {
     unoptimized: true,
   },
   experimental: {
-    optimizePackageImports: ['@heroui/react'],
+    optimizePackageImports: ['@heroui/react']
   },
+  serverExternalPackages: ['pdf-lib']
 }
 
-module.exports = nextConfig 
+export default nextConfig

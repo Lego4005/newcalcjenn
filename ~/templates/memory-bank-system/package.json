@@ -1,0 +1,23 @@
+{
+  "name": "memory-bank-system",
+  "version": "1.0.0",
+  "description": "A comprehensive project tracking and documentation system that helps maintain perfect context across development sessions",
+  "type": "module",
+  "scripts": {
+    "status": "node tracking/checklist-status.mjs",
+    "status:incomplete": "node tracking/checklist-status.mjs --incomplete",
+    "memory-bank": "code docs/cline_docs/activeContext.md"
+  },
+  "keywords": [
+    "documentation",
+    "project-management",
+    "tracking",
+    "memory-bank",
+    "development-tools"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "chalk": "^5.3.0"
+  }
+}

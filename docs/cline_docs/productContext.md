@@ -1,76 +1,69 @@
 # Product Context
 
-## Purpose
-This project exists to provide Florida real estate professionals with an accurate and user-friendly closing cost calculator. It solves the problem of complex closing cost calculations by automating the process and providing instant, accurate estimates.
+## Purpose & Vision
 
-## Problems Solved
-1. Complex Calculations
-   - Automates Florida-specific closing cost calculations
-   - Handles title insurance reissue rates
-   - Calculates documentary stamps and prorated taxes
+### Core Purpose
+The Real Estate Calculator provides comprehensive property analysis tools for real estate professionals, enabling them to:
+- Calculate property values
+- Analyze investments
+- Track financial metrics
+- Make informed decisions
 
-2. Accessibility
-   - Provides real-time updates as inputs change
-   - Offers visual breakdowns of costs
-   - Includes demo mode for quick testing
-   - Role-specific features and access
+### Key Problems Solved
+1. **Property Analysis**
+   - Complex calculations
+   - Financial metrics
+   - Investment analysis
+   - Risk assessment
 
-3. Accuracy
-   - Uses current Florida rates and fees
-   - Implements proper calculation formulas
-   - Allows for customization of default values
-   - Role-based validation
+2. **User Experience**
+   - Intuitive interface
+   - Real-time updates
+   - Visual feedback
+   - Mobile responsiveness
 
-## How It Works
-1. User Management
-   - Role-based registration (agent/broker)
-   - Secure authentication via Supabase
-   - Protected dashboard access
-   - Profile management
-   - Session handling
+3. **Data Management**
+   - Property tracking
+   - History logging
+   - User preferences
+   - Secure storage
 
-2. Property Selection
-   - Property search functionality
-   - Manual property data entry
-   - Demo property option
-   - Role-specific property access
+## System Components
 
-3. Calculator Flow
-   - Step-by-step input process
-   - Real-time calculations
-   - Interactive cost breakdown
-   - Downloadable/shareable results
-   - Role-based permissions
+### 1. Calculator Core
+- **Property Valuation**: Calculate property values
+- **Investment Analysis**: ROI calculations
+- **Financial Metrics**: Key performance indicators
+- **Risk Assessment**: Risk analysis tools
 
-4. Data Management
-   - Local storage for persistence
-   - URL-based state sharing
-   - Transaction history tracking
-   - Secure profile data
-   - Role-based data access
+### 2. User Interface
+- **HeroUI Components**: Modern UI framework
+- **Responsive Design**: Mobile-first approach
+- **Interactive Elements**: Real-time updates
+- **Data Visualization**: Charts and graphs
 
-## User Roles
-1. Real Estate Agent
-   - Basic calculator access
-   - Property search
-   - Result sharing
-   - Transaction history
+### 3. Backend Services
+- **Supabase Integration**: Data storage
+- **Authentication**: User management
+- **API Layer**: Data access
+- **Security**: Data protection
 
-2. Broker
-   - Advanced calculator features
-   - Team management
-   - Analytics access
-   - Custom fee settings
+## Success Metrics
 
-## Security
-1. Access Control
-   - Role-based permissions
-   - Protected routes
-   - Secure API endpoints
-   - Data isolation
+### User Experience
+- Load Time: < 2 seconds
+- Response Time: < 200ms
+- Error Rate: < 1%
+- User Satisfaction: > 90%
 
-2. Data Protection
-   - Row Level Security
-   - Profile privacy
-   - Secure sessions
-   - Audit logging
+### Performance
+- Calculation Speed: < 100ms
+- Data Updates: Real-time
+- API Response: < 300ms
+- Uptime: 99.9%
+
+### Business Impact
+- User Adoption: Growing
+- Feature Usage: High
+- User Retention: Strong
+- Support Tickets: Low

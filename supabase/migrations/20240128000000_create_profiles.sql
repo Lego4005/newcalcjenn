@@ -1,7 +1,6 @@
 create table if not exists profiles (
   id uuid references auth.users on delete cascade primary key,
-  email text not null,
-  role text not null check (role in ('agent', 'broker')),
+  role text not null check (role in ('user', 'agent', 'broker')),
   created_at timestamp with time zone default timezone('utc'::text, now()) not null,
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

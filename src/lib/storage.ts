@@ -1,42 +1,65 @@
 import { supabase } from './supabaseClient';
-import type { Property } from '@/types/property';
+import type { Property, TransactionDetails } from '@/types/property';
 
 export async function saveProperty(property: Property): Promise<Property> {
   try {
     // Clean numeric values and remove formatting
-    const cleanNumber = (value: any) => {
+    const cleanNumber = (value: string | number | undefined) => {
       if (typeof value === 'string') {
         return parseInt(value.replace(/[^0-9.-]/g, ''));
       }
       return value || 0;
     };
 
-    // Remove hoaFees and map to database column names
-    const propertyData = {
-      id: property.id || undefined,
+    // Prepare property details
+    const propertyDetails = {
+      id: property.id || crypto.randomUUID(),
       address: property.address,
       price: cleanNumber(property.price),
       beds: cleanNumber(property.beds),
       baths: cleanNumber(property.baths),
       sqft: cleanNumber(property.sqft),
-      year_built: cleanNumber(property.yearBuilt),
-      lot_size: cleanNumber(property.lotSize),
-      property_type: property.propertyType || 'Single Family',
-      status: property.status || 'Active',
-      market_value: cleanNumber(property.marketValue),
-      price_per_sqft: cleanNumber(property.pricePerSqft),
-      days_on_market: cleanNumber(property.daysOnMarket),
-      taxes: cleanNumber(property.taxes),
+      yearBuilt: cleanNumber(property.yearBuilt),
+      lotSize: cleanNumber(property.lotSize),
+      propertyType: property.propertyType,
+      status: property.status,
+      images: property.images,
       source: property.source || {
         name: 'Manual Entry',
         fetchDate: new Date().toISOString()
-      }
+      },
+      metrics: property.metrics,
+      formData: property.formData,
+      transactionDetails: property.transactionDetails
     };
 
+    // Get the current user
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) {
+      throw new Error('No authenticated user found');
+    }
+
+    // Save to saved_calculations table
     const { data, error } = await supabase
-      .from('properties')
-      .upsert(propertyData)
-      .select()
+      .from('saved_calculations')
+      .upsert({
+        user_id: user.id,
+        name: property.address,
+        property_details: propertyDetails,
+        mortgage_info: property.transactionDetails || {},
+        commission_structure: {
+          buyerAgentCommission: property.transactionDetails?.buyerAgentCommission,
+          sellerAgentCommission: property.transactionDetails?.sellerAgentCommission
+        },
+        additional_fees: {
+          escrowFee: property.transactionDetails?.escrowFee,
+          titleFee: property.transactionDetails?.titleFee,
+          sellerCredits: property.transactionDetails?.sellerCredits,
+          repairCosts: property.transactionDetails?.repairCosts,
+          customCosts: property.transactionDetails?.customCosts
+        }
+      })
+      .select('property_details')
       .single();
 
     if (error) {
@@ -44,80 +67,20 @@ export async function saveProperty(property: Property): Promise<Property> {
       throw error;
     }
 
-    // Map database columns back to Property type
-    return {
-      id: data.id,
-      address: data.address,
-      price: data.price,
-      beds: data.beds,
-      baths: data.baths,
-      sqft: data.sqft,
-      yearBuilt: data.year_built,
-      lotSize: data.lot_size,
-      propertyType: data.property_type,
-      status: data.status,
-      marketValue: data.market_value,
-      pricePerSqft: data.price_per_sqft,
-      daysOnMarket: data.days_on_market,
-      taxes: data.taxes,
-      source: data.source,
-      hoaFees: property.hoaFees // Keep hoaFees in memory
-    };
+    // Return the saved property details
+    return data.property_details as Property;
   } catch (error) {
     console.error('Error in saveProperty:', error);
     throw error;
   }
 }
 
-export async function saveTransaction(propertyId: string, transaction: any): Promise<void> {
+export async function getProperty(id: string): Promise<Property | null> {
   try {
-    // Clean numeric values and remove formatting
-    const cleanNumber = (value: any) => {
-      if (typeof value === 'string') {
-        return parseFloat(value.replace(/[^0-9.-]/g, ''));
-      }
-      return value || 0;
-    };
-
-    // Map transaction fields to database column names
-    const transactionData = {
-      property_id: propertyId,
-      sale_price: cleanNumber(transaction.salePrice || transaction.sale_price || 3345400),
-      mortgage_balance: cleanNumber(transaction.mortgageBalance || transaction.mortgage_balance || 0),
-      hoa_fees: cleanNumber(transaction.hoaFees || transaction.hoa_fees || 0),
-      buyer_agent_commission: cleanNumber(transaction.buyerAgentCommission || transaction.buyer_agent_commission || 3.00),
-      seller_agent_commission: cleanNumber(transaction.sellerAgentCommission || transaction.seller_agent_commission || 3.00),
-      escrow_fee: cleanNumber(transaction.escrowFee || transaction.escrow_fee || 595),
-      title_fee: cleanNumber(transaction.titleFee || transaction.title_fee || 175),
-      seller_credits: cleanNumber(transaction.sellerCredits || transaction.seller_credits || 0),
-      repair_costs: cleanNumber(transaction.repairCosts || transaction.repair_costs || 0),
-      custom_costs: cleanNumber(transaction.customCosts || transaction.custom_costs || 0),
-      closing_date: transaction.closingDate || transaction.closing_date || new Date().toISOString().split('T')[0],
-      updated_at: new Date().toISOString()
-    };
-
-    console.log('Saving transaction data:', transactionData);
-
-    const { error } = await supabase
-      .from('transactions')
-      .upsert(transactionData);
-
-    if (error) {
-      console.error('Error saving transaction:', error.message);
-      throw error;
-    }
-  } catch (error) {
-    console.error('Error in saveTransaction:', error);
-    throw error;
-  }
-}
-
-export function getProperty(id: string): Property | null {
-  try {
-    const { data, error } = supabase
-      .from('properties')
-      .select('*')
-      .eq('id', id)
+    const { data, error } = await supabase
+      .from('saved_calculations')
+      .select('property_details')
+      .eq('property_details->>id', id)
       .single();
 
     if (error) {
@@ -129,36 +92,73 @@ export function getProperty(id: string): Property | null {
       return null;
     }
 
-    return {
-      id: data.id,
-      address: data.address,
-      price: data.price,
-      beds: data.beds,
-      baths: data.baths,
-      sqft: data.sqft,
-      yearBuilt: data.year_built,
-      lotSize: data.lot_size,
-      propertyType: data.property_type,
-      status: data.status,
-      marketValue: data.market_value,
-      pricePerSqft: data.price_per_sqft,
-      daysOnMarket: data.days_on_market,
-      taxes: data.taxes, // Using 'taxes' instead of 'annual_taxes'
-      source: data.source,
-      hoaFees: 0 // Default to 0 since it's not stored in the properties table
-    };
+    return data.property_details as Property;
   } catch (error) {
     console.error('Error in getProperty:', error);
     return null;
   }
 }
 
-export function getTransaction(propertyId: string): any | null {
+export async function saveTransaction(propertyId: string, transaction: TransactionDetails): Promise<void> {
   try {
-    const { data, error } = supabase
-      .from('transactions')
+    // Get the property calculation first
+    const { data: propertyData, error: propertyError } = await supabase
+      .from('saved_calculations')
       .select('*')
-      .eq('property_id', propertyId)
+      .eq('property_details->>id', propertyId)
+      .single();
+
+    if (propertyError) {
+      throw propertyError;
+    }
+
+    // Clean numeric values and remove formatting
+    const cleanNumber = (value: string | number | undefined) => {
+      if (typeof value === 'string') {
+        return parseFloat(value.replace(/[^0-9.-]/g, ''));
+      }
+      return value || 0;
+    };
+
+    // Update the calculation with transaction data
+    const { error } = await supabase
+      .from('saved_calculations')
+      .update({
+        mortgage_info: {
+          mortgageBalance: cleanNumber(transaction.mortgageBalance),
+          hoaFees: cleanNumber(transaction.hoaFees)
+        },
+        commission_structure: {
+          buyerAgentCommission: cleanNumber(transaction.buyerAgentCommission),
+          sellerAgentCommission: cleanNumber(transaction.sellerAgentCommission)
+        },
+        additional_fees: {
+          escrowFee: cleanNumber(transaction.escrowFee),
+          titleFee: cleanNumber(transaction.titleFee),
+          sellerCredits: cleanNumber(transaction.sellerCredits),
+          repairCosts: cleanNumber(transaction.repairCosts),
+          customCosts: cleanNumber(transaction.customCosts)
+        },
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', propertyData.id);
+
+    if (error) {
+      console.error('Error saving transaction:', error.message);
+      throw error;
+    }
+  } catch (error) {
+    console.error('Error in saveTransaction:', error);
+    throw error;
+  }
+}
+
+export async function getTransaction(propertyId: string): Promise<TransactionDetails | null> {
+  try {
+    const { data, error } = await supabase
+      .from('saved_calculations')
+      .select('mortgage_info, commission_structure, additional_fees')
+      .eq('property_details->>id', propertyId)
       .single();
 
     if (error) {
@@ -166,9 +166,25 @@ export function getTransaction(propertyId: string): any | null {
       return null;
     }
 
-    return data;
+    if (!data) {
+      return null;
+    }
+
+    // Combine all transaction-related data
+    return {
+      salePrice: 0, // Required by TransactionDetails type
+      mortgageBalance: data.mortgage_info?.mortgageBalance,
+      hoaFees: data.mortgage_info?.hoaFees,
+      buyerAgentCommission: data.commission_structure?.buyerAgentCommission,
+      sellerAgentCommission: data.commission_structure?.sellerAgentCommission,
+      escrowFee: data.additional_fees?.escrowFee,
+      titleFee: data.additional_fees?.titleFee,
+      sellerCredits: data.additional_fees?.sellerCredits,
+      repairCosts: data.additional_fees?.repairCosts,
+      customCosts: data.additional_fees?.customCosts
+    };
   } catch (error) {
     console.error('Error in getTransaction:', error);
     return null;
   }
-} 
+}
