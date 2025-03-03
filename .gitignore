@@ -37,3 +37,19 @@ next-env.d.ts
 
 # NextUI Pro components
 /nextuipro/
+
+# Development and configuration files
+.clinerules*
+custom_modes.json
+*.md
+/analytics/
+/core/
+/ideas/
+/knowledge-base/
+/memory-bank/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
