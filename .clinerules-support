@@ -1,0 +1,179 @@
+# Support Prompts Rules
+Version: 1.0.0
+
+## Prompt Types
+1. Enhance Prompt
+   ```typescript
+   interface EnhancePrompt {
+     purpose: 'improve-prompt-quality';
+     input: string;
+     output: {
+       enhanced: string;
+       noExplanations: true;
+       noLeadIn: true;
+       noBulletPoints: true;
+       noPlaceholders: true;
+       noQuotes: true;
+     };
+   }
+   ```
+
+2. Explain Code
+   ```typescript
+   interface ExplainCode {
+     purpose: 'understand-code';
+     input: {
+       filePath: string;
+       selectedText?: string;
+       userInput?: string;
+     };
+     output: {
+       explanation: string;
+       context: string;
+       patterns: string[];
+     };
+   }
+   ```
+
+3. Fix Issues
+   ```typescript
+   interface FixIssues {
+     purpose: 'resolve-problems';
+     input: {
+       filePath: string;
+       diagnosticText?: string;
+       selectedText?: string;
+       userInput?: string;
+     };
+     output: {
+       fixes: string[];
+       steps: string[];
+       validation: string[];
+     };
+   }
+   ```
+
+4. Improve Code
+   ```typescript
+   interface ImproveCode {
+     purpose: 'optimize-code';
+     input: {
+       filePath: string;
+       selectedText?: string;
+       userInput?: string;
+     };
+     output: {
+       improvements: string[];
+       bestPractices: string[];
+       architecture: string[];
+     };
+   }
+   ```
+
+## Mode-Specific Behaviors
+1. Code Mode
+   - Full tool access
+   - Implementation focus
+   - Memory bank active
+   - Pattern tracking
+
+2. Architect Mode
+   - Design focus
+   - System planning
+   - Pattern definition
+   - Architecture guidance
+
+3. Ask Mode
+   - Explanation focus
+   - Concept clarity
+   - Resource access
+   - No implementation
+
+## Support Features
+1. Context Management
+   ```typescript
+   interface ContextManagement {
+     addToContext: {
+       content: string;
+       type: 'code' | 'terminal' | 'general';
+       persistence: boolean;
+     };
+     terminalContent: {
+       content: string;
+       command?: string;
+       explanation?: string;
+     };
+   }
+   ```
+
+2. Command Handling
+   ```typescript
+   interface CommandHandling {
+     fixCommand: {
+       command: string;
+       issues: string[];
+       solution: string;
+     };
+     explainCommand: {
+       command: string;
+       purpose: string;
+       details: string[];
+     };
+   }
+   ```
+
+## Memory Bank Integration
+1. Context Tracking
+   - Track prompt enhancements
+   - Record explanations
+   - Document fixes
+   - Store improvements
+
+2. Pattern Learning
+   - Track successful prompts
+   - Document explanations
+   - Record fix patterns
+   - Store improvements
+
+## Documentation Requirements
+1. Prompt History
+   - Track enhancements
+   - Record explanations
+   - Document fixes
+   - Store improvements
+
+2. Learning Patterns
+   - Document successes
+   - Track failures
+   - Record patterns
+   - Store insights
+
+## Quality Standards
+1. Prompt Quality
+   - Clear purpose
+   - Specific scope
+   - Actionable output
+   - Measurable results
+
+2. Response Quality
+   - Complete information
+   - Clear explanation
+   - Actionable steps
+   - Verifiable results
+
+## Update Requirements
+1. Prompt Updates
+   - Track changes
+   - Record improvements
+   - Document patterns
+   - Store learnings
+
+2. Pattern Updates
+   - Track effectiveness
+   - Record usage
+   - Document outcomes
+   - Store insights
+
+## Change Log 📝
+- [Timestamp]: [Change description]
+- [Timestamp]: [Change description]

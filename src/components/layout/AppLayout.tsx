@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import {
   Navbar,
   NavbarBrand,
@@ -9,7 +9,6 @@ import {
   NavbarMenu,
   NavbarMenuItem,
   NavbarMenuToggle,
-  Link,
   Button,
   Dropdown,
   DropdownTrigger,
@@ -22,11 +21,6 @@ import {
   Avatar,
   Badge,
   Divider,
-  Listbox,
-  ListboxItem,
-  Tooltip,
-  Accordion,
-  AccordionItem,
 } from "@nextui-org/react"
 import { usePathname } from 'next/navigation'
 import NextLink from 'next/link'
@@ -40,10 +34,11 @@ import {
   Moon,
   Bell,
   ChevronLeft,
-  ChevronRight,
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
-import { PropertyContext } from "@/components/PropertyContext"
+import { PropertySidebar } from "@/components/sidebar"
+import { Property } from "@/components/property/types"
+import { PropertyExpandedView } from "@/components/property/PropertyExpandedView"
 
 interface SidebarItem {
   key: string
@@ -54,79 +49,109 @@ interface SidebarItem {
 
 export function AppLayout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
-  const [isSidebarCompact, setSidebarCompact] = useState(false)
+  const [isSidebarExpanded, setSidebarExpanded] = useState(true)
+  const [selectedProperty, setSelectedProperty] = useState<Property | null>(null)
+  const [isExpandedViewOpen, setIsExpandedViewOpen] = useState(false)
   const pathname = usePathname()
   const { theme, setTheme } = useTheme()
 
+  // Set Dashboard as active by default when on root path
+  useEffect(() => {
+    if (pathname === '/') {
+      // This is just to ensure Dashboard is highlighted on the root path
+      // No actual state change needed as we're using pathname for active state
+    }
+  }, [pathname])
+
+  // Sample properties - in a real app, these would come from a data source
+  const sampleProperties: Property[] = [
+    {
+      id: '1',
+      address: '123 Main St, Austin, TX',
+      price: '$450,000',
+      image: 'https://images.unsplash.com/photo-1568605114967-8130f3a36994',
+      status: 'active',
+      bedrooms: 3,
+      bathrooms: 2,
+      squareFeet: 1850,
+      yearBuilt: 2015,
+      lastTouched: '2025-02-28',
+      taxAssessment: 425000,
+      zestimate: 455000,
+      annualTaxAmount: 8500
+    },
+    {
+      id: '2',
+      address: '456 Oak Ave, Austin, TX',
+      price: '$550,000',
+      image: 'https://images.unsplash.com/photo-1570129477492-45c003edd2be',
+      status: 'pending',
+      bedrooms: 4,
+      bathrooms: 3,
+      squareFeet: 2200,
+      yearBuilt: 2010,
+      lastTouched: '2025-03-01',
+      taxAssessment: 530000,
+      zestimate: 560000,
+      annualTaxAmount: 10600
+    },
+    {
+      id: '3',
+      address: '789 Pine Rd, Austin, TX',
+      price: '$650,000',
+      image: 'https://images.unsplash.com/photo-1576941089067-2de3c901e126',
+      status: 'closed',
+      bedrooms: 5,
+      bathrooms: 3.5,
+      squareFeet: 2800,
+      yearBuilt: 2018,
+      lastTouched: '2025-02-25',
+      taxAssessment: 625000,
+      zestimate: 660000,
+      annualTaxAmount: 12500
+    },
+  ]
+
   const menuItems: SidebarItem[] = [
-    { key: 'net-seller', title: 'Net Seller Sheet', href: '/', icon: <Home className="w-5 h-5" /> },
-    { key: 'search', title: 'Property Search', href: '/search', icon: <Search className="w-5 h-5" /> },
+    { key: 'dashboard', title: 'Dashboard', href: '/', icon: <Home className="w-5 h-5" /> },
+    { key: 'properties', title: 'Property Search', href: '/properties', icon: <Search className="w-5 h-5" /> },
     { key: 'documents', title: 'Documents', href: '/documents', icon: <FileText className="w-5 h-5" /> },
     { key: 'analytics', title: 'Analytics', href: '/analytics', icon: <BarChart className="w-5 h-5" /> },
     { key: 'settings', title: 'Settings', href: '/settings', icon: <Settings className="w-5 h-5" /> },
   ]
 
+  // Helper function to determine if a menu item is active
+  const isMenuItemActive = (href: string): boolean => {
+    if (href === '/') {
+      return pathname === '/' || pathname === '/dashboard';
+    }
+    return pathname === href;
+  }
+
+  // Handle property selection
+  const handlePropertySelect = (property: Property) => {
+    setSelectedProperty(property)
+    setIsExpandedViewOpen(true)
+  }
+
+  // Handle loading property to calculator
+  const handleLoadToCalculator = (property: Property) => {
+    console.log('Loading property into calculator:', property)
+    setIsExpandedViewOpen(false)
+    // In a real implementation, this would update the calculator state
+  }
+
   return (
     <div className="min-h-screen bg-background">
       <div className="flex">
         {/* Desktop Sidebar */}
-        <aside className={`fixed left-0 top-0 h-screen flex-col border-r transition-all duration-200 ${
-          isSidebarCompact ? 'w-[70px]' : 'w-80'
-        } hidden lg:flex z-40`}>
-          <div className="flex items-center justify-between p-4">
-            <div className={`flex items-center ${isSidebarCompact ? 'hidden' : 'block'}`}>
-              <img 
-                src="https://rocatitle.com/wp-content/uploads/2022/03/PNG-04_small_v2a.png"
-                alt="Roca Title"
-                className="h-12 w-auto"
-              />
-            </div>
-            <Button
-              isIconOnly
-              variant="light"
-              onClick={() => setSidebarCompact(!isSidebarCompact)}
-            >
-              {isSidebarCompact ? (
-                <ChevronRight className="w-5 h-5" />
-              ) : (
-                <ChevronLeft className="w-5 h-5" />
-              )}
-            </Button>
-          </div>
-
-          <Divider />
-
-          <div className={`flex-grow ${isSidebarCompact ? 'px-2' : 'p-4'}`}>
-            <PropertyContext isCompact={isSidebarCompact} />
-          </div>
-
-          <Divider />
-
-          <Listbox
-            aria-label="Navigation"
-            className="p-4"
-            itemClasses={{
-              base: "px-3 gap-3 h-12 data-[hover=true]:bg-default-100",
-            }}
-          >
-            {menuItems.map((item) => (
-              <ListboxItem
-                key={item.key}
-                href={item.href}
-                startContent={item.icon}
-                textValue={item.title}
-              >
-                {isSidebarCompact ? (
-                  <Tooltip content={item.title} placement="right">
-                    <span className="sr-only">{item.title}</span>
-                  </Tooltip>
-                ) : (
-                  item.title
-                )}
-              </ListboxItem>
-            ))}
-          </Listbox>
-        </aside>
+        <PropertySidebar
+          properties={sampleProperties}
+          selectedProperty={selectedProperty}
+          onSelectProperty={handlePropertySelect}
+          isExpanded={isSidebarExpanded}
+          onToggleExpanded={() => setSidebarExpanded(!isSidebarExpanded)}
+        />
 
         {/* Mobile Sidebar */}
         <aside className={`fixed inset-y-0 left-0 w-72 bg-background border-r transform ${
@@ -136,7 +161,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
             <img 
               src="https://rocatitle.com/wp-content/uploads/2022/03/PNG-04_small_v2a.png"
               alt="Roca Title"
-              className="h-8 w-auto"
+              className="h-10 w-auto" // Increased from h-8 to h-10
             />
             <Button
               isIconOnly
@@ -149,8 +174,17 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
 
           <Divider />
 
-          <div className="p-4">
-            <PropertyContext isCompact={false} />
+          <div className="p-4 overflow-y-auto">
+            <PropertySidebar
+              properties={sampleProperties}
+              selectedProperty={selectedProperty}
+              onSelectProperty={(property) => {
+                handlePropertySelect(property)
+                setIsMenuOpen(false)
+              }}
+              isExpanded={true}
+              onToggleExpanded={() => {}}
+            />
           </div>
 
           <Divider />
@@ -161,7 +195,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
                 key={item.key}
                 href={item.href || '#'}
                 className={`flex items-center gap-3 px-3 h-12 rounded-lg ${
-                  pathname === item.href 
+                  isMenuItemActive(item.href || '') 
                     ? 'bg-primary/10 text-primary' 
                     : 'text-foreground hover:bg-default-100'
                 }`}
@@ -182,7 +216,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           />
         )}
 
-        <div className={`flex-1 ${isSidebarCompact ? 'lg:ml-[70px]' : 'lg:ml-80'}`}>
+        <div className={`flex-1 ${isSidebarExpanded ? 'lg:ml-80' : 'lg:ml-[70px]'}`}>
           <Navbar
             classNames={{
               base: "pt-2 lg:pt-4",
@@ -201,7 +235,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               <img 
                 src="https://rocatitle.com/wp-content/uploads/2022/03/PNG-04_small_v2a.png"
                 alt="Roca Title"
-                className="h-8 w-auto"
+                className="h-10 w-auto" // Increased from h-8 to h-10
               />
             </NavbarBrand>
 
@@ -210,9 +244,9 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               justify="center"
             >
               {menuItems.map((item) => (
-                <NavbarItem key={item.key} isActive={pathname === item.href}>
+                <NavbarItem key={item.key} isActive={isMenuItemActive(item.href || '')}>
                   <NextLink
-                    className={`flex gap-2 text-inherit ${pathname === item.href ? 'text-primary' : ''}`}
+                    className={`flex gap-2 text-inherit ${isMenuItemActive(item.href || '') ? 'text-primary' : ''}`}
                     href={item.href || '#'}
                   >
                     {item.title}
@@ -315,7 +349,7 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
               {menuItems.map((item) => (
                 <NavbarMenuItem key={item.key}>
                   <NextLink
-                    className={`w-full ${pathname === item.href ? 'text-primary' : 'text-foreground'}`}
+                    className={`w-full ${isMenuItemActive(item.href || '') ? 'text-primary' : 'text-foreground'}`}
                     href={item.href || '#'}
                   >
                     {item.title}
@@ -332,6 +366,14 @@ export function AppLayout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </div>
+
+      {/* Property Expanded View */}
+      <PropertyExpandedView
+        property={selectedProperty}
+        isOpen={isExpandedViewOpen}
+        onClose={() => setIsExpandedViewOpen(false)}
+        onLoadToCalculator={handleLoadToCalculator}
+      />
     </div>
   )
-} 
+}

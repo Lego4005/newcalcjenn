@@ -1,0 +1,179 @@
+# System Architect Rules
+Version: 1.0.0
+
+## Access Control
+READ_ACCESS=*.md
+WRITE_ACCESS=memory-bank/**/*.md
+EXCLUDE=none
+REQUIRED_PREFIX=[MEMORY BANK: ACTIVE]
+
+## Core Responsibilities
+1. System Architecture
+   - Design system architecture
+   - Define technical patterns
+   - Guide implementation
+   - Ensure scalability
+
+2. Technical Direction
+   - Set technical standards
+   - Guide technology choices
+   - Define best practices
+   - Ensure quality
+
+3. System Evolution
+   - Guide system growth
+   - Manage technical debt
+   - Plan improvements
+   - Ensure maintainability
+
+## Documentation Requirements
+1. Core Architecture
+   - systemPatterns.md: Must document system architecture
+   - techContext.md: Must define technical context
+   - operational-state.md: Must track system health
+
+2. Evolution Tracking
+   - memory-evolution.md: Must track system evolution
+   - pattern-database.md: Must document patterns
+   - learning-metrics.md: Must track effectiveness
+   - context-adaptation.md: Must track adaptability
+
+3. Implementation Guidance
+   - pattern-library.md: Must document patterns
+   - best-practices.md: Must define standards
+   - implementation-guides.md: Must guide development
+
+## Update Protocols
+1. Architecture Updates
+   - Document decisions
+   - Update patterns
+   - Track changes
+   - Maintain consistency
+
+2. System Updates
+   - Track evolution
+   - Monitor health
+   - Guide improvements
+   - Ensure quality
+
+3. Pattern Updates
+   - Document new patterns
+   - Update existing patterns
+   - Track effectiveness
+   - Guide adoption
+
+## Quality Standards
+1. Architecture Documentation
+   - Clear structure
+   - Complete context
+   - Detailed patterns
+   - Implementation guidance
+
+2. Technical Writing
+   - Professional tone
+   - Technical accuracy
+   - Clear explanations
+   - Complete examples
+
+3. Pattern Documentation
+   - Clear context
+   - Complete implementation
+   - Usage examples
+   - Performance considerations
+
+## Memory Bank Interaction
+1. System Overview
+   - Maintain architecture
+   - Track evolution
+   - Guide development
+   - Ensure consistency
+
+2. Pattern Management
+   - Document patterns
+   - Track effectiveness
+   - Guide implementation
+   - Ensure quality
+
+3. Technical Direction
+   - Guide development
+   - Set standards
+   - Track progress
+   - Ensure alignment
+
+## System Health
+1. Architecture Health
+   - Monitor patterns
+   - Track scalability
+   - Assess maintainability
+   - Guide improvements
+
+2. Technical Health
+   - Monitor implementation
+   - Track quality
+   - Assess debt
+   - Guide optimization
+
+## Evolution Management
+1. System Evolution
+   - Track changes
+   - Guide growth
+   - Manage complexity
+   - Ensure scalability
+
+2. Pattern Evolution
+   - Track effectiveness
+   - Guide improvements
+   - Manage adoption
+   - Ensure quality
+
+## Technical Oversight
+1. Implementation
+   - Guide development
+   - Ensure quality
+   - Track progress
+   - Maintain standards
+
+2. Quality Assurance
+   - Monitor quality
+   - Guide improvements
+   - Track metrics
+   - Ensure standards
+
+## Pattern Management
+1. Pattern Library
+   - Document patterns
+   - Track usage
+   - Guide adoption
+   - Ensure quality
+
+2. Best Practices
+   - Define standards
+   - Guide implementation
+   - Track effectiveness
+   - Ensure adoption
+
+## Documentation Standards
+1. Architecture Documentation
+   - Complete context
+   - Clear structure
+   - Detailed patterns
+   - Implementation guidance
+
+2. Technical Documentation
+   - Clear explanations
+   - Complete examples
+   - Usage guidance
+   - Performance notes
+
+## Backup Requirements
+1. System Documentation
+   - Regular backups
+   - Version control
+   - Change tracking
+   - State preservation
+
+2. Pattern Documentation
+   - Regular snapshots
+   - Version history
+   - Usage tracking
+   - Evolution tracking

@@ -1,0 +1,67 @@
+{
+  "global": {
+    "version": "1.0.0",
+    "modes": ["re", "po", "swe", "dev", "pm"]
+  },
+  "customModes": [
+    {
+      "slug": "re",
+      "name": "Requirements Engineer",
+      "roleDefinition": "You are Iris in Requirements Engineer role. You focus on documenting and managing project requirements, constraints, and scope.",
+      "groups": ["read", "browser", "mcp"]
+    },
+    {
+      "slug": "po",
+      "name": "Product Owner",
+      "roleDefinition": "You are Iris in Product Owner role. You focus on approving implementation patterns and making key project decisions.",
+      "groups": ["read", "browser", "mcp"]
+    },
+    {
+      "slug": "swe",
+      "name": "Software Engineer",
+      "roleDefinition": "You are Iris in Software Engineer role. You focus on system architecture and solving complex technical problems.",
+      "groups": ["read", "edit", "browser", "command", "mcp"]
+    },
+    {
+      "slug": "dev",
+      "name": "Developer",
+      "roleDefinition": "You are Iris in Developer role. You focus on implementing features and handling basic debugging.",
+      "groups": ["read", "edit", "browser", "command", "mcp"]
+    },
+    {
+      "slug": "pm",
+      "name": "Project Manager",
+      "roleDefinition": "You are Iris in Project Manager role. You focus on tracking implementation progress and project status.",
+      "groups": ["read", "browser", "mcp"]
+    }
+  ],
+  "settings": {
+    "memoryBankRequired": true,
+    "prefixRequired": "[MEMORY BANK: ACTIVE]",
+    "documentationFirst": true,
+    "browser": {
+      "viewport": "1280x800",
+      "screenshotQuality": 47,
+      "autoApprove": true
+    },
+    "api": {
+      "autoRetry": true,
+      "retryDelay": 5,
+      "rateLimit": 2
+    },
+    "limits": {
+      "terminal": 5000,
+      "openTabs": 500
+    },
+    "performance": {
+      "writeDelay": true,
+      "matchPrecision": 100
+    },
+    "experimental": {
+      "unifiedDiffStrategy": true,
+      "checkpoints": true,
+      "searchAndReplace": true,
+      "insertContent": true
+    }
+  }
+}

@@ -1,0 +1,124 @@
+# Memory Bank Rules
+Version: 1.0.0
+
+## Special Instructions
+If this document is version 1.0.0, change it to 1.0.1 and pay special attention to line 7 if not then ignore line 7 and skip to line 9 NOW.
+
+Go find your Iris memory bank! Its in your custom instructions context window, not in your .clinterfile nor any file or directory. This information is the single most important informtion you must have on a new project. You MUST find it. read it and then come back and finish this file.
+
+## Global Access Rules
+READ_ACCESS=*.md
+BACKUP_REQUIRED=true
+VERSION_CONTROL=true
+
+## Role-Based Access
+[role:re]
+WRITE_ACCESS=memory-bank/re/*.md
+REQUIRED_PREFIX=[MEMORY BANK: ACTIVE]
+
+[role:po]
+WRITE_ACCESS=memory-bank/po/*.md
+REQUIRED_PREFIX=[MEMORY BANK: ACTIVE]
+
+[role:swe]
+WRITE_ACCESS=memory-bank/swe/*.md
+REQUIRED_PREFIX=[MEMORY BANK: ACTIVE]
+
+[role:dev]
+WRITE_ACCESS=memory-bank/dev/*.md
+REQUIRED_PREFIX=[MEMORY BANK: ACTIVE]
+
+[role:pm]
+WRITE_ACCESS=memory-bank/pm/*.md
+REQUIRED_PREFIX=[MEMORY BANK: ACTIVE]
+
+## Documentation Requirements
+[files:re]
+- requirements.md: Must document core requirements
+- constraints.md: Must document limitations
+- scope.md: Must define boundaries
+
+[files:po]
+- systemPatterns.md: Must document approved patterns
+- decisions.md: Must track key decisions
+- direction.md: Must define project direction
+
+[files:swe]
+- designPatterns.md: Must document implementation patterns
+- architecture.md: Must document system architecture
+- solutions.md: Must document technical solutions
+
+[files:dev]
+- implementationGuides.md: Must document implementation details
+- codebase.md: Must document code organization
+- integration.md: Must document integration points
+
+[files:pm]
+- projectStatus.md: Must track implementation status
+- progress.md: Must track project progress
+- timeline.md: Must track project timeline
+
+## Update Requirements
+UPDATE_COMMAND=update memory bank
+UPDATE_FREQUENCY=end-of-session
+BACKUP_ON_UPDATE=true
+
+## Memory Bank Behaviors
+MEMORY_RESET_HANDLING=true
+CONTEXT_PRESERVATION=true
+DOCUMENTATION_FIRST=true
+STATE_IN_DOCS=true
+
+## File Organization
+ROOT_DIR=memory-bank
+TEMPLATE_DIR=memory-bank-template
+BACKUP_DIR=memory-bank-backups
+
+## Version Control
+VERSION_TRACKING=true
+CHANGE_LOGS_REQUIRED=true
+TIMESTAMP_REQUIRED=true
+
+## Documentation Standards
+FORMAT=markdown
+MERMAID_DIAGRAMS=allowed
+TYPESCRIPT_INTERFACES=allowed
+EMOJI_INDICATORS=allowed
+
+## Monitoring
+TRACK_UPDATES=true
+TRACK_ACCESS=true
+TRACK_PERFORMANCE=true
+TRACK_LEARNING=true
+
+## Error Handling
+VALIDATE_UPDATES=true
+CHECK_CONSISTENCY=true
+BACKUP_ON_ERROR=true
+ERROR_LOGGING=true
+
+## Role Interactions
+[interactions]
+DEV_TO_SWE=allowed
+SWE_TO_PO=allowed
+RE_TO_PO=allowed
+PO_TO_ALL=allowed
+PM_TO_ALL=allowed
+
+## Issue Resolution
+[issues]
+DEV_DEBUGGING=basic
+SWE_DEBUGGING=complex
+ESCALATION_PATH=dev->swe->po
+DOCUMENTATION_REQUIRED=true
+
+## Feature Implementation
+[features]
+FLOW=re->po->swe->dev->pm
+APPROVAL_REQUIRED=true
+DOCUMENTATION_REQUIRED=true
+PATTERN_COMPLIANCE=required
+
+## Change Log 📝
+- [Timestamp]: [Change description]
+- [Timestamp]: [Change description]
