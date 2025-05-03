@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from "react"
+import { useEffect, useState } from "react";
 import {
   Modal,
   ModalContent,
@@ -10,7 +10,7 @@ import {
   ListboxItem,
   Listbox,
   Kbd,
-} from "@nextui-org/react"
+} from "@heroui/react"
 import { Command } from "lucide-react"
 import { Icon } from "@iconify/react"
 
@@ -137,8 +137,8 @@ export function CommandMenu({ onAction }: CommandMenuProps) {
         <span className="text-default-500">Quick Actions...</span>
       </Button>
 
-      <Modal 
-        isOpen={isOpen} 
+      <Modal
+        isOpen={isOpen}
         onOpenChange={setIsOpen}
         size="lg"
         classNames={{
@@ -146,7 +146,7 @@ export function CommandMenu({ onAction }: CommandMenuProps) {
         }}
       >
         <ModalContent>
-          {(onClose) => (
+          {() => (
             <>
               <div className="p-4 border-b border-divider">
                 <Input
@@ -154,7 +154,9 @@ export function CommandMenu({ onAction }: CommandMenuProps) {
                   placeholder="Search actions..."
                   value={search}
                   onValueChange={handleSearch}
-                  startContent={<Command className="w-4 h-4 text-default-400" />}
+                  startContent={
+                    <Command className="w-4 h-4 text-default-400" />
+                  }
                   variant="bordered"
                   classNames={{
                     input: "ml-2",
@@ -176,8 +178,11 @@ export function CommandMenu({ onAction }: CommandMenuProps) {
                     variant={selectedCategory === category ? "solid" : "flat"}
                     onPress={() => handleCategorySelect(category)}
                     startContent={
-                      <Icon 
-                        icon={actions.find(a => a.category === category)?.icon || ""} 
+                      <Icon
+                        icon={
+                          actions.find((a) => a.category === category)?.icon ||
+                          ""
+                        }
                         className="w-4 h-4"
                       />
                     }
@@ -196,17 +201,20 @@ export function CommandMenu({ onAction }: CommandMenuProps) {
                     <ListboxItem
                       key={action.id}
                       startContent={
-                        <Icon 
-                          icon={action.icon} 
+                        <Icon
+                          icon={action.icon}
                           className="w-4 h-4 text-default-400"
                         />
                       }
                       endContent={
                         action.shortcut && (
                           <div className="hidden sm:flex items-center gap-1">
-                            {action.shortcut.map((key, i) => (
-                              <Kbd key={i} keys={[key]} />
-                            ))}
+                            {action.shortcut.length > 0 && (
+                              <Kbd keys={["command"]} />
+                            )}
+                            {action.shortcut.length > 1 && (
+                              <Kbd>{action.shortcut[1]}</Kbd>
+                            )}
                           </div>
                         )
                       }
@@ -222,5 +230,5 @@ export function CommandMenu({ onAction }: CommandMenuProps) {
         </ModalContent>
       </Modal>
     </>
-  )
+  );
 } 

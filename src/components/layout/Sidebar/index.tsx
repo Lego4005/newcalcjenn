@@ -1,8 +1,9 @@
 'use client'
 
-import { Button, Tooltip } from "@nextui-org/react"
+import { Button, Tooltip } from "@heroui/react";
 import { ChevronLeft, Plus } from "lucide-react"
 import Image from "next/image"
+import Link from "next/link";
 import { PropertyContext } from "@/components/PropertyContext"
 import { Navigation } from "./Navigation"
 import { UserSection } from "./UserSection"
@@ -19,7 +20,11 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
   }
 
   return (
-    <aside className={`fixed top-0 left-0 h-screen bg-background/80 dark:bg-black/90 backdrop-blur-xl border-r border-divider transition-all duration-300 ${isCollapsed ? 'w-20' : 'w-72'}`}>
+    <aside
+      className={`fixed top-0 left-0 h-screen bg-background/80 dark:bg-black/90 backdrop-blur-xl border-r border-divider transition-all duration-300 ${
+        isCollapsed ? "w-20" : "w-72"
+      }`}
+    >
       <div className="flex flex-col h-full">
         <div className="relative">
           <Image
@@ -37,7 +42,11 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
             radius="full"
             onClick={toggleSidebar}
           >
-            <ChevronLeft className={`w-4 h-4 transition-transform duration-300 ${isCollapsed ? 'rotate-180' : ''}`} />
+            <ChevronLeft
+              className={`w-4 h-4 transition-transform duration-300 ${
+                isCollapsed ? "rotate-180" : ""
+              }`}
+            />
           </Button>
         </div>
 
@@ -45,17 +54,25 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
           <Navigation isCollapsed={isCollapsed} />
 
           <div className="mt-6">
-            <div className={`px-3 py-2 flex items-center justify-between ${isCollapsed ? 'hidden' : ''}`}>
-              <h3 className="text-xs font-medium text-default-500 uppercase">Properties</h3>
+            <div
+              className={`px-3 py-2 flex items-center justify-between ${
+                isCollapsed ? "hidden" : ""
+              }`}
+            >
+              <h3 className="text-xs font-medium text-default-500 uppercase">
+                Properties
+              </h3>
               <Tooltip content="Add Property">
-                <Button
-                  isIconOnly
-                  variant="light"
-                  size="sm"
-                  className="text-default-500 data-[hover]:bg-default-100"
-                >
-                  <Plus className="w-4 h-4" />
-                </Button>
+                <Link href="/wizard-selector">
+                  <Button
+                    isIconOnly
+                    variant="light"
+                    size="sm"
+                    className="text-default-500 data-[hover]:bg-default-100"
+                  >
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </Link>
               </Tooltip>
             </div>
             <PropertyContext isCompact={isCollapsed} />
@@ -67,5 +84,5 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
         </div>
       </div>
     </aside>
-  )
+  );
 } 

@@ -1,6 +1,6 @@
 'use client'
 
-import { Card, Input } from "@nextui-org/react"
+import { Card, Input } from "@heroui/react"
 import { DollarSign, TrendingUp } from "lucide-react"
 
 interface StatCardProps {

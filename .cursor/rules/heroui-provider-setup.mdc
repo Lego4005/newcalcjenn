@@ -1,0 +1,54 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# HeroUI Provider Setup (Next.js App Router)
+
+To enable HeroUI context (theming, routing integration, etc.) throughout your application, you need to wrap your application's root layout with the `HeroUIProvider`.
+
+1.  **Create a Client Component Provider Wrapper:**
+    Create a file like `app/providers.tsx` and mark it as a client component (`'use client'`). Import `HeroUIProvider` from `@heroui/react` and wrap the `children`.
+
+    ```tsx
+    // app/providers.tsx
+    'use client'
+
+    import {HeroUIProvider} from '@heroui/react'
+    // Optionally import and wrap other providers like NextThemesProvider
+    import { ThemeProvider as NextThemesProvider } from "next-themes"
+    
+    export function Providers({children}: { children: React.ReactNode }) {
+      // Add logic like handling mounted state if needed for theme providers
+      return (
+        <HeroUIProvider>
+          {/* <NextThemesProvider attribute="class" defaultTheme="dark"> */}
+            {children}
+          {/* </NextThemesProvider> */}
+        </HeroUIProvider>
+      )
+    }
+    ```
+
+2.  **Integrate into Root Layout:**
+    Import the `Providers` component into your `app/layout.tsx` and use it to wrap the main content (`children`).
+
+    ```tsx
+    // app/layout.tsx
+    import { Providers } from "./providers";
+    
+    export default function RootLayout({children}) {
+      return (
+        <html lang="en">
+          <body>
+            <Providers>
+              {/* Your other layout components (Navbar, Sidebar, etc.) */}
+              {children}
+            </Providers>
+          </body>
+        </html>
+      );
+    }
+    ```
+
+*Based on documentation snippet: [Defining Client-Side HeroUI Provider (App Directory)](mdc:https:/github.com/heroui-inc/heroui/blob/canary/apps/docs/content/docs/frameworks/nextjs.mdx#_snippet_5)*

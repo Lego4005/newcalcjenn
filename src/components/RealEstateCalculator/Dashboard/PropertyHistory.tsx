@@ -1,4 +1,4 @@
-import { Card, CardBody, Divider } from '@nextui-org/react';
+import { Card, CardBody, Divider } from "@heroui/react";
 import { History, DollarSign, Calendar, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 import type { Property } from './PropertyDashboard';

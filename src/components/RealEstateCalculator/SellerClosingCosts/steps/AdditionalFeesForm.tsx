@@ -1,14 +1,25 @@
-import { Input, Switch, Card, CardBody, Tooltip } from '@nextui-org/react';
+import { Input, Switch, Card, CardBody, Tooltip } from "@heroui/react";
 import { InfoIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { CalculatorFormData } from '../SellerClosingCalculator';
 
+// Define default values for additional fees
+const defaultAdditionalFees: CalculatorFormData['additionalFees'] = {
+  taxProrations: 0,
+  hasPriorTitlePolicy: false,
+  hoaDues: 0,
+};
+
 type AdditionalFeesFormProps = {
-  data: CalculatorFormData['additionalFees'];
+  // Allow data to be potentially null or undefined
+  data: Partial<CalculatorFormData['additionalFees']> | null | undefined;
   onUpdate: (data: Partial<CalculatorFormData['additionalFees']>) => void;
 };
 
-export default function AdditionalFeesForm({ data, onUpdate }: AdditionalFeesFormProps) {
+export default function AdditionalFeesForm({ data: initialData, onUpdate }: AdditionalFeesFormProps) {
+  // Merge initialData with defaults, ensuring we always have an object
+  const data = { ...defaultAdditionalFees, ...(initialData || {}) };
+
   const [errors, setErrors] = useState({
     taxProrations: '',
     hoaDues: '',
@@ -30,12 +41,18 @@ export default function AdditionalFeesForm({ data, onUpdate }: AdditionalFeesFor
   const handleTaxProrationsChange = (value: string) => {
     if (validateAmount(value, 'taxProrations')) {
       onUpdate({ taxProrations: parseFloat(value) });
+    } else {
+      // Optionally update with 0 or keep the last valid value if validation fails on change
+      // For simplicity, let's ensure it's always a number
+       onUpdate({ taxProrations: 0 });
     }
   };
 
   const handleHOADuesChange = (value: string) => {
     if (validateAmount(value, 'hoaDues')) {
       onUpdate({ hoaDues: parseFloat(value) });
+    } else {
+       onUpdate({ hoaDues: 0 });
     }
   };
 
@@ -43,11 +60,12 @@ export default function AdditionalFeesForm({ data, onUpdate }: AdditionalFeesFor
     onUpdate({ hasPriorTitlePolicy: checked });
   };
 
-  // Validate initial data
+  // Validate initial data - safe because 'data' is merged with defaults
   useEffect(() => {
     validateAmount(data.taxProrations.toString(), 'taxProrations');
     validateAmount(data.hoaDues.toString(), 'hoaDues');
-  }, []);
+    // No need for dependency array if only running on mount with initial data
+  }, []); // Removed 'data' dependency as it's derived and stable within the render
 
   return (
     <div className="flex flex-col gap-6">

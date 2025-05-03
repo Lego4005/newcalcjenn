@@ -1,11 +1,29 @@
-import { useState } from 'react';
-import { Card, CardBody, CardHeader, Tab, Tabs, Button, Spinner } from '@nextui-org/react';
-import { Share2, Download, Home, Calculator, History, Plus } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
-import SellerClosingCalculator from '../SellerClosingCosts/SellerClosingCalculator';
-import PropertyPreview from './PropertyPreview';
-import PropertyKPIs from './PropertyKPIs';
-import PropertyHistory from './PropertyHistory';
+"use client";
+
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardBody,
+  CardHeader,
+  Tab,
+  Tabs,
+  Button,
+  Spinner,
+} from "@heroui/react";
+import {
+  Share2,
+  Download,
+  Home,
+  Calculator,
+  History,
+  Plus,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useSearchParams } from "next/navigation";
+import SellerClosingCalculator from "../SellerClosingCosts/SellerClosingCalculator";
+import PropertyPreview from "./PropertyPreview";
+import PropertyKPIs from "./PropertyKPIs";
+import PropertyHistory from "./PropertyHistory";
 
 export type Property = {
   id: string;
@@ -17,48 +35,57 @@ export type Property = {
   yearBuilt: number;
   lotSize: number;
   propertyType: string;
-  status: 'Active' | 'Pending' | 'Sold';
+  status: "Active" | "Pending" | "Sold";
   images: string[];
 };
 
 const tabVariants = {
   enter: (direction: number) => ({
     x: direction > 0 ? 20 : -20,
-    opacity: 0
+    opacity: 0,
   }),
   center: {
     x: 0,
-    opacity: 1
+    opacity: 1,
   },
   exit: (direction: number) => ({
     x: direction < 0 ? 20 : -20,
-    opacity: 0
-  })
+    opacity: 0,
+  }),
 };
 
 export default function PropertyDashboard() {
-  const [selectedTab, setSelectedTab] = useState('calculator');
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get("tab");
+  const [selectedTab, setSelectedTab] = useState("calculator");
   const [property, setProperty] = useState<Property | null>(
     // Mock property data - replace with Supabase data
     {
-      id: '1',
-      address: '123 Main St, Anytown, USA',
+      id: "1",
+      address: "123 Main St, Anytown, USA",
       price: 450000,
       beds: 3,
       baths: 2,
       sqft: 2000,
       yearBuilt: 2010,
       lotSize: 5000,
-      propertyType: 'Single Family',
-      status: 'Active',
+      propertyType: "Single Family",
+      status: "Active",
       images: [
-        'https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop',
-        'https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2075&auto=format&fit=crop',
+        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop",
+        "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2075&auto=format&fit=crop",
       ],
     }
   );
   const [slideDirection, setSlideDirection] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    // Set the tab from URL parameter if available
+    if (tabParam && ["calculator", "property", "history"].includes(tabParam)) {
+      setSelectedTab(tabParam);
+    }
+  }, [tabParam]);
 
   const handleTabChange = (key: string) => {
     setSlideDirection(key > selectedTab ? 1 : -1);
@@ -67,20 +94,20 @@ export default function PropertyDashboard() {
 
   const handleShare = () => {
     // Implement sharing functionality
-    console.log('Share clicked');
+    console.log("Share clicked");
   };
 
   const handleDownload = () => {
     // Implement PDF download
-    console.log('Download clicked');
+    console.log("Download clicked");
   };
 
   const handleAddProperty = async () => {
     setIsLoading(true);
     // Simulate loading
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    setProperty(null);
-    setIsLoading(false);
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+    // Navigate to wizard selector
+    window.location.href = "/wizard-selector";
   };
 
   const LoadingSpinner = () => (
@@ -103,7 +130,7 @@ export default function PropertyDashboard() {
   return (
     <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full">
       {/* Left Column - Property Preview & KPIs */}
-      <motion.div 
+      <motion.div
         className="xl:col-span-4 space-y-6"
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -116,17 +143,15 @@ export default function PropertyDashboard() {
           </>
         ) : (
           <Card className="w-full h-[400px] flex items-center justify-center relative overflow-hidden">
-            <AnimatePresence>
-              {isLoading && <LoadingSpinner />}
-            </AnimatePresence>
+            <AnimatePresence>{isLoading && <LoadingSpinner />}</AnimatePresence>
             <CardBody className="text-center">
-              <motion.div 
+              <motion.div
                 className="space-y-4"
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.2 }}
               >
-                <motion.div 
+                <motion.div
                   className="bg-default-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center"
                   whileHover={{ scale: 1.1, rotate: 90 }}
                   whileTap={{ scale: 0.9 }}
@@ -134,9 +159,12 @@ export default function PropertyDashboard() {
                   <Plus className="w-8 h-8 text-default-500" />
                 </motion.div>
                 <div>
-                  <h3 className="text-xl font-semibold mb-2">No Property Selected</h3>
+                  <h3 className="text-xl font-semibold mb-2">
+                    No Property Selected
+                  </h3>
                   <p className="text-default-500 mb-4">
-                    Add a property to start calculating closing costs and analyzing market data.
+                    Add a property to start calculating closing costs and
+                    analyzing market data.
                   </p>
                   <Button
                     color="primary"
@@ -154,7 +182,7 @@ export default function PropertyDashboard() {
       </motion.div>
 
       {/* Right Column - Calculator & Tools */}
-      <motion.div 
+      <motion.div
         className="xl:col-span-8"
         initial={{ opacity: 0, x: 20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -234,12 +262,18 @@ export default function PropertyDashboard() {
                 exit="exit"
                 transition={{
                   x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 }
+                  opacity: { duration: 0.2 },
                 }}
               >
-                {selectedTab === 'calculator' && property && <SellerClosingCalculator />}
-                {selectedTab === 'property' && property && <div>Property Details Content</div>}
-                {selectedTab === 'history' && property && <PropertyHistory property={property} />}
+                {selectedTab === "calculator" && property && (
+                  <SellerClosingCalculator />
+                )}
+                {selectedTab === "property" && property && (
+                  <div>Property Details Content</div>
+                )}
+                {selectedTab === "history" && property && (
+                  <PropertyHistory property={property} />
+                )}
                 {!property && (
                   <div className="text-center py-8 text-default-500">
                     Please add a property to view this section
@@ -252,4 +286,4 @@ export default function PropertyDashboard() {
       </motion.div>
     </div>
   );
-} 
+}

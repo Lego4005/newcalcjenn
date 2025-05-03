@@ -1,0 +1,36 @@
+---
+description: 
+globs: *.tsx
+alwaysApply: false
+---
+# HeroUI Routing Integration
+
+HeroUI components like `Link`, `Tabs`, `ListboxItem`, `DropdownItem`, etc., can trigger client-side navigation when an `href` prop is provided.
+
+To make this work correctly with your chosen routing library (e.g., Next.js App Router, React Router), you need to configure the `HeroUIProvider`.
+
+1.  **Get Navigation Function:** Obtain the navigation function from your router. For Next.js App Router, this is typically done using the `useRouter` hook from `next/navigation`.
+2.  **Pass `navigate` Prop:** Pass the router's navigation function (e.g., `router.push`) to the `navigate` prop of the `HeroUIProvider`.
+
+```tsx
+// app/providers.tsx (Example with Next.js App Router)
+'use client'
+
+import { HeroUIProvider } from "@heroui/react"
+import { useRouter } from 'next/navigation' // Import useRouter
+
+export function Providers({children}: { children: React.ReactNode }) {
+  const router = useRouter() // Get router instance
+
+  return (
+    // Pass router.push to the navigate prop
+    <HeroUIProvider navigate={router.push}>
+      {children}
+    </HeroUIProvider>
+  )
+}
+```
+
+Now, components like `<Link href="/dashboard">Dashboard</Link>` or `<Tab key="settings" href="/settings">Settings</Tab>` will use the provided `navigate` function for seamless client-side transitions.
+
+*Based on documentation snippets: [Setting up HeroUIProvider with Generic Router Hooks](mdc:https:/github.com/heroui-inc/heroui/blob/canary/apps/docs/content/docs/guide/routing.mdx#_snippet_0) and [Implementing Navigation with HeroUI Components using href - JSX](mdc:https:/github.com/heroui-inc/heroui/blob/canary/apps/docs/content/docs/guide/routing.mdx#_snippet_12)*

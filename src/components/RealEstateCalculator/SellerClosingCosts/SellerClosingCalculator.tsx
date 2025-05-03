@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Card, CardBody, CardHeader, Progress, Button } from '@nextui-org/react';
+import { Card, CardBody, CardHeader, Progress, Button } from "@heroui/react";
 import PropertyDetailsForm from './steps/PropertyDetailsForm';
 import MortgageInfoForm from './steps/MortgageInfoForm';
 import CommissionForm from './steps/CommissionForm';

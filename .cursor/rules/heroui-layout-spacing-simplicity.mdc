@@ -1,0 +1,30 @@
+---
+description: 
+globs: *tsx
+alwaysApply: false
+---
+# HeroUI Layout, Spacing, and Simplicity
+
+Good layout and spacing contribute significantly to a clean and usable interface.
+
+1.  **Leverage Tailwind for Layout & Spacing:**
+    *   Use Tailwind CSS utility classes extensively for layout (`flex`, `grid`), spacing (`p-*`, `m-*`, `space-*`, `gap-*`), and sizing (`w-*`, `h-*`).
+    *   Rely on the theme's spacing scale (defined by Tailwind defaults or your theme config) for consistency.
+
+2.  **Use HeroUI Layout Components:**
+    *   Utilize components like `Card`, `Navbar`, `Grid` for common layout patterns.
+    *   These components often handle internal padding and structure.
+
+3.  **Maintain Consistent Spacing:**
+    *   Establish consistent spacing rules for margins between elements, padding within containers, and gaps in grids or flex layouts.
+    *   Apply these rules uniformly across the application.
+
+4.  **Prioritize Simplicity and Whitespace:**
+    *   Avoid overcrowding the interface. Use adequate whitespace (padding and margins) to separate elements and improve readability.
+    *   Focus on clear visual hierarchy – make important elements stand out.
+
+5.  **Ensure Responsiveness:**
+    *   Use Tailwind's responsive prefixes (`sm:`, `md:`, `lg:`, `xl:`) to adapt layout, spacing, and visibility for different screen sizes.
+    *   Test components on various viewport widths.
+
+*Based on general UI/UX principles and Perplexity search results emphasizing simplicity and Tailwind integration.*

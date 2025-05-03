@@ -1,0 +1,31 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# HeroUI Component Customization & Consistency
+
+HeroUI components are designed for customization, but consistency is key for maintainability and user experience.
+
+1.  **Prioritize Props for Customization:**
+    *   Modify component appearance and behavior primarily through their available props (`variant`, `color`, `size`, `radius`, `isDisabled`, `isLoading`, etc.).
+    *   This leverages the built-in design system and ensures consistency.
+    *   Example: Use `<Button color="primary" variant="ghost">` instead of adding many custom Tailwind classes for a similar effect.
+
+2.  **Use Tailwind `className` Sparingly:**
+    *   Apply Tailwind utility classes via the `className` prop for minor layout adjustments or specific overrides that aren't achievable through component props.
+    *   Avoid recreating complex styles with `className` if a component prop or theme modification achieves the same result.
+
+3.  **Leverage Component Slots (If Available):**
+    *   For more complex structural customizations (e.g., adding an icon to a specific part of a `Card`), check if the component offers customization slots via props or specific sub-components.
+    *   The `classNames` prop can sometimes be used to target internal slots for styling with Tailwind.
+
+4.  **Avoid Direct CSS Overrides:**
+    *   Refrain from writing custom CSS rules that directly target HeroUI component classes (e.g., `.nextui-button {...}`). This is brittle and can break with library updates.
+    *   If extensive customization is needed, consider customizing the theme via the Tailwind plugin configuration.
+
+5.  **Maintain API Consistency:**
+    *   Use components consistently across the application. If a certain `variant` and `color` of a `Button` is used for primary actions, stick to that pattern.
+    *   Build reusable custom components that wrap HeroUI components if you need a specific configuration repeatedly.
+
+*Based on Perplexity search results emphasizing props-driven design, modularity, and consistent APIs.*

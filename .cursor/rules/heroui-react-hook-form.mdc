@@ -1,0 +1,70 @@
+---
+description: 
+globs: *.tsx
+alwaysApply: false
+---
+# HeroUI Integration with React Hook Form
+
+HeroUI components like `Input`, `Select`, `Checkbox`, etc., can be integrated with `react-hook-form` for robust form state management and validation.
+
+The key is to use the `Controller` component from `react-hook-form` to wrap each HeroUI form element.
+
+```tsx
+import { Controller, useForm } from "react-hook-form";
+import { Button, Form, Input } from "@heroui/react"; // Import necessary HeroUI components
+
+function MyFormComponent() {
+  const { handleSubmit, control } = useForm({
+    defaultValues: {
+      username: "",
+      // other fields...
+    },
+  });
+
+  const onSubmit = (data) => {
+    console.log("Form Data:", data);
+    // Handle form submission (e.g., API call)
+  };
+
+  return (
+    // Use HeroUI <Form> or a standard <form>
+    <Form onSubmit={handleSubmit(onSubmit)}>
+      <Controller
+        control={control} // Pass control from useForm
+        name="username"    // Unique name for this field
+        rules={{ required: "Username is required." }} // Validation rules
+        render={({ field, fieldState }) => (
+          // Render the HeroUI component
+          <Input
+            {...field} // Spread field props (value, onChange, onBlur, name, ref)
+            label="Username"
+            placeholder="Enter your username"
+            // Map fieldState to HeroUI props for validation feedback
+            isInvalid={fieldState.invalid}
+            errorMessage={fieldState.error?.message}
+            // Use validationBehavior="aria" to let RHF handle errors
+            validationBehavior="aria"
+          />
+        )}
+      />
+      
+      {/* Add other Controller-wrapped fields here... */}
+
+      <Button type="submit">Submit</Button>
+    </Form>
+  );
+}
+```
+
+**Key Points:**
+
+*   **`Controller`:** Wraps the HeroUI input.
+*   **`control`:** Passed from `useForm` to the `Controller`.
+*   **`name`:** Identifies the field within the form state.
+*   **`rules`:** Defines validation logic for `react-hook-form`.
+*   **`render` Prop:** Receives `field` (props to spread onto the input) and `fieldState` (validation status).
+*   **`field` Props:** `{...field}` connects the input's `value`, `onChange`, `onBlur`, etc., to `react-hook-form`.
+*   **`fieldState` Mapping:** `fieldState.invalid` and `fieldState.error?.message` are mapped to HeroUI's `isInvalid` and `errorMessage` props to display validation feedback.
+*   **`validationBehavior="aria"`:** (Recommended on HeroUI inputs) Prevents native browser validation popups and relies on `react-hook-form`'s error handling via ARIA attributes, which HeroUI uses for `isInvalid` and `errorMessage`.
+
+*Based on documentation snippets: [Integrating Form with React Hook Form (TypeScript)](mdc:https:/github.com/heroui-inc/heroui/blob/canary/apps/docs/content/blog/v2.6.0.mdx#_snippet_6) and [Integrating React Hook Form with HeroUI Components](mdc:https:/github.com/heroui-inc/heroui/blob/canary/apps/docs/content/docs/guide/forms.mdx#_snippet_12)*

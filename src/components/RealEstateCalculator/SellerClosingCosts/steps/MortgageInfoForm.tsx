@@ -1,4 +1,4 @@
-import { Input, Switch, Card, CardBody } from '@nextui-org/react';
+import { Input, Switch, Card, CardBody } from "@heroui/react";
 import { useState, useEffect } from 'react';
 import type { CalculatorFormData } from '../SellerClosingCalculator';
 

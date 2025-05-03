@@ -1,0 +1,58 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Front-End Verification Process with Puppeteer (MCP Tools)
+
+When proposing or making changes to front-end components or pages, follow this process using the available Puppeteer tools (prefixed with `mcp_puppeteer_`) to proactively identify potential issues before considering the task complete.
+
+The goal is to verify that the changes work as expected without introducing runtime errors, rendering problems, or interaction failures.
+
+## Verification Steps & Tools:
+
+1.  **Navigate to the Target Page:**
+    *   **Tool:** `mcp_puppeteer_puppeteer_navigate(url=...)`
+    *   **Purpose:** Load the specific page or route affected by the changes (e.g., `http://localhost:3000/component-viewer`).
+    *   **Verification:** Ensure navigation completes successfully without errors or timeouts. Check for a successful HTTP status (e.g., 200).
+
+2.  **Check for Console Errors:**
+    *   **Tool:** *Note: There isn't a direct MCP tool to listen for console errors like `page.on('console')`. This step requires manual observation or inferring errors based on component behavior or other tool failures.*
+    *   **Purpose:** Identify JavaScript runtime errors logged during page load or interaction.
+    *   **Verification:** Manually check the browser console after navigation and interaction, or deduce errors if subsequent steps fail unexpectedly. Aim for zero `console.error` messages related to the component.
+
+3.  **Check for Page Errors:**
+    *   **Tool:** *Note: There isn't a direct MCP tool to listen for page errors like `page.on('pageerror')`. Similar to console errors, this relies on observation or inference.*
+    *   **Purpose:** Catch uncaught exceptions in the page's JavaScript context.
+    *   **Verification:** Observe the page for crash indicators or infer critical failures if subsequent steps fail. Aim for zero uncaught exceptions.
+
+4.  **Verify Element Presence & Visibility:**
+    *   **Tools:**
+        *   `mcp_puppeteer_puppeteer_evaluate(script=...)` with JavaScript like `document.querySelector(...)` or `document.querySelectorAll(...)`.
+        *   `mcp_puppeteer_puppeteer_screenshot(name=..., selector=...)` to visually confirm or target specific elements.
+    *   **Purpose:** Confirm that key elements of the modified component(s) are rendered in the DOM.
+    *   **Verification:** Use `evaluate` to check if selectors for essential parts of the component return elements. Use `screenshot` (potentially with a `selector`) to visually confirm the component or its parts are rendered as expected. Ensure necessary elements exist.
+
+5.  **Simulate User Interactions (If Applicable):**
+    *   **Tools:**
+        *   `mcp_puppeteer_puppeteer_click(selector=...)`
+        *   `mcp_puppeteer_puppeteer_fill(selector=..., value=...)`
+        *   `mcp_puppeteer_puppeteer_select(selector=..., value=...)`
+        *   `mcp_puppeteer_puppeteer_hover(selector=...)`
+    *   **Purpose:** Test interactive elements modified or added by the change.
+    *   **Verification:** Simulate the relevant user action (e.g., click a button, fill a form). After the action, repeat step 4 (element checks) and potentially step 6 (screenshot) to verify the expected outcome occurred (e.g., state changed, new content appeared, form submitted) without causing new errors (steps 2 & 3).
+
+6.  **Capture Screenshots for Visual Review:**
+    *   **Tool:** `mcp_puppeteer_puppeteer_screenshot(name=...)`
+    *   **Purpose:** Provide visual evidence of the component's state before/after changes or interactions.
+    *   **Verification:** Capture screenshots at key points. While I cannot perform visual regression testing, these screenshots help the user visually confirm the changes look correct and no unintended layout shifts occurred.
+
+## Workflow:
+
+1.  **Identify** the component/page affected by the code change.
+2.  **Determine** the relevant interactions to test (if any).
+3.  **Execute** the verification steps using the MCP Puppeteer tools.
+4.  **Analyze** the results: Check for errors, missing elements, incorrect states, or visual regressions (based on screenshots).
+5.  **Attempt Fixes:** If verification fails (errors found, unexpected behavior), try to diagnose and fix the issue based on the results.
+6.  **Repeat** verification after applying fixes.
+7.  **Report:** Once verification passes, report completion to the user. If a fix cannot be determined or requires user input, ask clarifying questions detailing the failure encountered during verification.

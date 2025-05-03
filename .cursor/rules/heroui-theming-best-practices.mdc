@@ -1,0 +1,38 @@
+---
+description: 
+globs: *.tsx
+alwaysApply: false
+---
+# HeroUI Theming Best Practices
+
+Effective theming ensures visual consistency and maintainability.
+
+1.  **Use the Centralized Theme Configuration:**
+    *   Define your application's color palettes (light, dark, custom) and layout tokens (like border radius, spacing units if needed) within the `heroui` plugin configuration in your `tailwind.config.js`.
+    *   This centralizes design tokens for easier updates.
+    ```javascript
+    // tailwind.config.js
+    heroui({
+      themes: {
+        light: {
+          colors: { primary: '#006FEE', ... },
+          layout: { borderRadius: { small: '4px' } }
+        },
+        dark: { /* ... */ }
+      }
+    })
+    ```
+
+2.  **Leverage Semantic Color Tokens:**
+    *   When styling components, prefer using semantic color tokens defined in your theme (e.g., `primary`, `secondary`, `success`, `warning`, `danger`, `background`, `foreground`) via component props (`color="primary"`) or Tailwind classes (`bg-primary`, `text-foreground`).
+    *   Avoid hardcoding specific hex values directly in component styles.
+
+3.  **Utilize Built-in Dark Mode:**
+    *   HeroUI has strong support for dark mode, typically activated by adding the `dark` class to a parent element (often the `<html>` or `<body>` tag, managed by libraries like `next-themes`).
+    *   Use Tailwind's `dark:` variant for theme-specific overrides: `bg-white dark:bg-black`.
+
+4.  **Apply Themes Correctly:**
+    *   Ensure the `HeroUIProvider` wraps your application (see `heroui-provider-setup.mdc`).
+    *   Themes are typically applied by adding the theme name class (e.g., `light`, `dark`, or a custom theme name like `purple-dark`) to a container element (like `<html>`, `<body>`, or `<main>`).
+
+*Based on Perplexity search results and documentation snippets regarding theme configuration and application.*

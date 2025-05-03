@@ -1,9 +1,9 @@
-import { Card, CardBody, Button, Divider } from '@nextui-org/react';
+import { Card, CardBody, Button, Divider, Spinner } from "@heroui/react";
 import { Download } from 'lucide-react';
 import type { CalculatorFormData } from './SellerClosingCalculator';
 
 type CalculationResultsProps = {
-  formData: CalculatorFormData;
+  formData: CalculatorFormData | null | undefined;
 };
 
 type CostBreakdown = {
@@ -13,6 +13,17 @@ type CostBreakdown = {
 };
 
 export default function CalculationResults({ formData }: CalculationResultsProps) {
+  // Check if formData or propertyDetails is missing
+  if (!formData || !formData.propertyDetails) {
+    // Optionally show a loading spinner or a message
+    return (
+      <div className="flex justify-center items-center h-64">
+        <Spinner label="Loading results..." color="primary" labelColor="primary" />
+        {/* Or return <p>Waiting for property details...</p>; */}
+      </div>
+    );
+  }
+
   // Calculate commission costs
   const listingCommission = (formData.propertyDetails.salePrice * formData.commissionStructure.listingAgentRate) / 100;
   const buyerCommission = (formData.propertyDetails.salePrice * formData.commissionStructure.buyerAgentRate) / 100;
@@ -93,7 +104,7 @@ export default function CalculationResults({ formData }: CalculationResultsProps
       <div>
         <h3 className="text-xl font-semibold mb-4">Calculation Results</h3>
         <p className="text-gray-600 mb-6">
-          Here's a detailed breakdown of your closing costs and net proceeds.
+          Here&apos;s a detailed breakdown of your closing costs and net proceeds.
         </p>
       </div>
 

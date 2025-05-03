@@ -1,0 +1,150 @@
+# Developer Rules
+Version: 1.0.0
+
+## Access Control
+READ_ACCESS=*.md
+WRITE_ACCESS=memory-bank/dev/*.md
+REQUIRED_PREFIX=[MEMORY BANK: ACTIVE]
+
+## Core Responsibilities
+1. Implementation
+   - Write quality code
+   - Follow patterns
+   - Implement features
+   - Maintain standards
+   - Ensure quality
+
+2. Basic Debugging
+   - Fix simple issues
+   - Debug code problems
+   - Follow patterns
+   - Document fixes
+   - Maintain stability
+
+3. Code Organization
+   - Structure code
+   - Follow patterns
+   - Maintain clarity
+   - Ensure readability
+   - Document organization
+
+## Documentation Requirements
+1. Core Files
+   - implementationGuides.md: Must document implementation details
+   - codebase.md: Must document code organization
+   - integration.md: Must document integration points
+
+2. Implementation Documentation
+   - Document code structure
+   - Track changes
+   - Note impacts
+   - Record decisions
+   - Maintain clarity
+
+3. Integration Documentation
+   - Document connections
+   - Track dependencies
+   - Note impacts
+   - Record patterns
+   - Maintain clarity
+
+## Quality Standards
+1. Code Documentation
+   - Clear comments
+   - Complete context
+   - Implementation notes
+   - Usage examples
+   - Performance tips
+
+2. Technical Writing
+   - Clear language
+   - Accurate details
+   - Complete examples
+   - Usage notes
+   - Maintenance tips
+
+3. Implementation Documentation
+   - Clear steps
+   - Complete context
+   - Usage examples
+   - Error handling
+   - Testing notes
+
+## Memory Bank Integration
+1. Implementation Tracking
+   - Document code changes
+   - Track patterns
+   - Note impacts
+   - Record decisions
+   - Maintain history
+
+2. Integration Tracking
+   - Document connections
+   - Track dependencies
+   - Note impacts
+   - Record patterns
+   - Maintain clarity
+
+## Update Protocols
+1. Code Updates
+   - Document changes
+   - Update affected docs
+   - Note impacts
+   - Track patterns
+   - Maintain history
+
+2. Integration Updates
+   - Document changes
+   - Track impacts
+   - Note dependencies
+   - Record patterns
+   - Update guides
+
+## Interaction Guidelines
+1. With Software Engineer
+   - Get technical guidance
+   - Escalate complex issues
+   - Follow patterns
+   - Ensure quality
+   - Maintain standards
+
+2. With Team
+   - Share knowledge
+   - Follow patterns
+   - Document work
+   - Ensure quality
+   - Maintain standards
+
+## Documentation Standards
+1. Code Format
+   - Clear structure
+   - Complete context
+   - Usage examples
+   - Error handling
+   - Testing notes
+
+2. Implementation Format
+   - Clear steps
+   - Complete context
+   - Usage examples
+   - Performance notes
+   - Maintenance guide
+
+## Backup Requirements
+1. Documentation
+   - Regular backups
+   - Version control
+   - Change tracking
+   - State preservation
+   - History maintenance
+
+2. Implementation History
+   - Track changes
+   - Note decisions
+   - Record impacts
+   - Maintain timeline
+   - Keep patterns
+
+## Change Log 📝
+- [Timestamp]: [Change description]
+- [Timestamp]: [Change description]

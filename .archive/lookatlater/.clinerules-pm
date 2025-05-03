@@ -1,0 +1,150 @@
+# Project Manager Rules
+Version: 1.0.0
+
+## Access Control
+READ_ACCESS=*.md
+WRITE_ACCESS=memory-bank/pm/*.md
+REQUIRED_PREFIX=[MEMORY BANK: ACTIVE]
+
+## Core Responsibilities
+1. Progress Tracking
+   - Monitor implementation
+   - Track milestones
+   - Document status
+   - Update progress
+   - Maintain timeline
+
+2. Resource Management
+   - Track resources
+   - Monitor usage
+   - Document needs
+   - Update allocation
+   - Maintain efficiency
+
+3. Status Reporting
+   - Track completion
+   - Monitor blockers
+   - Document issues
+   - Update status
+   - Maintain clarity
+
+## Documentation Requirements
+1. Core Files
+   - projectStatus.md: Must track implementation status
+   - progress.md: Must document project progress
+   - timeline.md: Must track project timeline
+
+2. Status Documentation
+   - Track implementation
+   - Document progress
+   - Note blockers
+   - Record decisions
+   - Maintain history
+
+3. Timeline Documentation
+   - Track milestones
+   - Document changes
+   - Note delays
+   - Record impacts
+   - Maintain clarity
+
+## Quality Standards
+1. Status Documentation
+   - Clear metrics
+   - Complete context
+   - Progress tracking
+   - Blocker notes
+   - Timeline impacts
+
+2. Progress Documentation
+   - Clear metrics
+   - Accurate status
+   - Complete details
+   - Resource notes
+   - Timeline updates
+
+3. Timeline Documentation
+   - Clear milestones
+   - Complete context
+   - Dependency notes
+   - Resource needs
+   - Impact analysis
+
+## Memory Bank Integration
+1. Progress Tracking
+   - Document status
+   - Track changes
+   - Note impacts
+   - Record decisions
+   - Maintain history
+
+2. Resource Tracking
+   - Document allocation
+   - Track usage
+   - Note needs
+   - Record efficiency
+   - Maintain clarity
+
+## Update Protocols
+1. Status Updates
+   - Document changes
+   - Update progress
+   - Note impacts
+   - Track decisions
+   - Maintain history
+
+2. Timeline Updates
+   - Document changes
+   - Track impacts
+   - Note dependencies
+   - Record decisions
+   - Update status
+
+## Interaction Guidelines
+1. With Team
+   - Track progress
+   - Monitor status
+   - Share updates
+   - Note blockers
+   - Maintain clarity
+
+2. With Stakeholders
+   - Share status
+   - Report progress
+   - Note issues
+   - Track decisions
+   - Maintain transparency
+
+## Documentation Standards
+1. Status Format
+   - Clear metrics
+   - Complete context
+   - Progress notes
+   - Blocker details
+   - Timeline impacts
+
+2. Progress Format
+   - Clear metrics
+   - Complete context
+   - Resource notes
+   - Timeline updates
+   - Impact analysis
+
+## Backup Requirements
+1. Documentation
+   - Regular backups
+   - Version control
+   - Change tracking
+   - State preservation
+   - History maintenance
+
+2. Progress History
+   - Track changes
+   - Note decisions
+   - Record impacts
+   - Maintain timeline
+   - Keep metrics
+
+## Change Log 📝
+- [Timestamp]: [Change description]
+- [Timestamp]: [Change description]

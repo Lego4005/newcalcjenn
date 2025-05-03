@@ -12,7 +12,7 @@ import {
   Tab,
   Divider,
   Image,
-} from "@nextui-org/react"
+} from "@heroui/react"
 import { Icon } from "@iconify/react"
 import { Building2, User, Settings, Key } from "lucide-react"
 

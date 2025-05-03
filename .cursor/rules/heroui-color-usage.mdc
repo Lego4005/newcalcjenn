@@ -1,0 +1,35 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# HeroUI Color Usage Guidelines
+
+Consistent and accessible color usage is key to good UI design.
+
+1.  **Prioritize Semantic Colors:**
+    *   Use the theme's semantic colors provided by HeroUI for their intended purpose:
+        *   `primary`: Main interactive elements, calls to action.
+        *   `secondary`: Less prominent interactive elements.
+        *   `success`: Success states, confirmations.
+        *   `warning`: Warnings, potential issues.
+        *   `danger`: Errors, destructive actions.
+    *   Apply these via component props (`color="success"`, `variant="flat"`) or Tailwind classes (`bg-success`, `text-danger-600`).
+
+2.  **Use Neutral/Content Colors Appropriately:**
+    *   `background`: Use for main page/container backgrounds.
+    *   `foreground`: Use for primary text content.
+    *   `content1` through `content4` (if defined in theme): Use for card backgrounds, dividers, or subtle UI elements, providing visual hierarchy.
+    *   `default`: Often used for subtle borders or disabled states.
+
+3.  **Ensure Sufficient Contrast:**
+    *   Always check color contrast between text and background colors, especially for interactive elements and important information.
+    *   Aim for WCAG AA standards (4.5:1 for normal text, 3:1 for large text) or higher (AAA: 7:1 / 4.5:1).
+    *   Use browser developer tools or online contrast checkers.
+    *   HeroUI's default themes generally aim for good contrast, but custom themes or overrides require careful checking.
+
+4.  **Limit Color Palette:**
+    *   Stick to the colors defined in your theme to maintain consistency.
+    *   Avoid introducing arbitrary colors unless necessary for specific branding elements.
+
+*Based on general UI/UX principles, accessibility standards (WCAG), and HeroUI documentation regarding semantic color tokens.*

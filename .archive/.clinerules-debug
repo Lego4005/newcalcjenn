@@ -1,0 +1,7 @@
+# Debug Mode Rules
+read_access: true
+write_access: false
+command_access: true
+browser_access: true
+mcp_access: true
+mode_specific: "Focus on systematic debugging and problem isolation."

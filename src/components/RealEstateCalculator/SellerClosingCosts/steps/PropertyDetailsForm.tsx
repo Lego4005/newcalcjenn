@@ -1,13 +1,24 @@
-import { Input } from '@nextui-org/react';
+import { Input } from "@heroui/react";
 import { useState, useEffect } from 'react';
 import type { CalculatorFormData } from '../SellerClosingCalculator';
 
+// Define default values for property details
+const defaultPropertyDetails: CalculatorFormData['propertyDetails'] = {
+  salePrice: 0,
+  address: '',
+  purchaseDate: '', // Use empty string or a default date format if needed
+};
+
 type PropertyDetailsFormProps = {
-  data: CalculatorFormData['propertyDetails'];
+  // Allow data to be potentially null or undefined
+  data: Partial<CalculatorFormData['propertyDetails']> | null | undefined;
   onUpdate: (data: Partial<CalculatorFormData['propertyDetails']>) => void;
 };
 
-export default function PropertyDetailsForm({ data, onUpdate }: PropertyDetailsFormProps) {
+export default function PropertyDetailsForm({ data: initialData, onUpdate }: PropertyDetailsFormProps) {
+  // Merge initialData with defaults
+  const data = { ...defaultPropertyDetails, ...(initialData || {}) };
+
   const [errors, setErrors] = useState({
     salePrice: '',
     address: '',
@@ -25,7 +36,7 @@ export default function PropertyDetailsForm({ data, onUpdate }: PropertyDetailsF
   };
 
   const validateAddress = (value: string) => {
-    if (!value.trim()) {
+    if (!value || !value.trim()) {
       setErrors((prev) => ({ ...prev, address: 'Address is required' }));
       return false;
     }
@@ -34,6 +45,10 @@ export default function PropertyDetailsForm({ data, onUpdate }: PropertyDetailsF
   };
 
   const validatePurchaseDate = (value: string) => {
+    if (!value) {
+      setErrors((prev) => ({ ...prev, purchaseDate: 'Please enter a valid date' }));
+      return false;
+    }
     const date = new Date(value);
     if (isNaN(date.getTime())) {
       setErrors((prev) => ({ ...prev, purchaseDate: 'Please enter a valid date' }));
@@ -44,24 +59,25 @@ export default function PropertyDetailsForm({ data, onUpdate }: PropertyDetailsF
   };
 
   const handleSalePriceChange = (value: string) => {
+    const price = parseFloat(value);
     if (validateSalePrice(value)) {
-      onUpdate({ salePrice: parseFloat(value) });
+      onUpdate({ salePrice: price });
+    } else {
+      onUpdate({ salePrice: 0 });
     }
   };
 
   const handleAddressChange = (value: string) => {
-    if (validateAddress(value)) {
-      onUpdate({ address: value });
-    }
+    onUpdate({ address: value });
+    validateAddress(value);
   };
 
   const handlePurchaseDateChange = (value: string) => {
-    if (validatePurchaseDate(value)) {
-      onUpdate({ purchaseDate: value });
-    }
+    onUpdate({ purchaseDate: value });
+    validatePurchaseDate(value);
   };
 
-  // Validate initial data
+  // Validate initial data - now safe due to defaults
   useEffect(() => {
     validateSalePrice(data.salePrice.toString());
     validateAddress(data.address);
@@ -73,7 +89,7 @@ export default function PropertyDetailsForm({ data, onUpdate }: PropertyDetailsF
       <div>
         <h3 className="text-xl font-semibold mb-4">Property Details</h3>
         <p className="text-gray-600 mb-6">
-          Please enter the basic information about the property you're selling.
+          Please enter the basic information about the property you&apos;re selling.
         </p>
       </div>
 
@@ -88,11 +104,6 @@ export default function PropertyDetailsForm({ data, onUpdate }: PropertyDetailsF
         startContent={
           <div className="pointer-events-none flex items-center">
             <span className="text-default-400 text-small">$</span>
-          </div>
-        }
-        endContent={
-          <div className="pointer-events-none flex items-center">
-            <span className="text-default-400 text-small">.00</span>
           </div>
         }
       />

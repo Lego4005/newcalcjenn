@@ -1,6 +1,7 @@
 'use client'
 
-import { Card, CardBody, Avatar, Button, Tooltip } from "@nextui-org/react"
+import { Card, CardBody, Avatar, Button, Tooltip } from "@heroui/react";
+import Link from "next/link";
 
 interface PropertyDetails {
   beds: number
@@ -164,14 +165,22 @@ export function PropertyContext({ isCompact = false }: { isCompact?: boolean }) 
   ]
 
   return (
-    <div className={`flex flex-col ${isCompact ? 'items-center gap-1' : 'gap-2'}`}>
+    <div
+      className={`flex flex-col ${isCompact ? "items-center gap-1" : "gap-2"}`}
+    >
       {!isCompact && (
         <div className="px-4 mb-1">
-          <h2 className="text-xs font-medium text-default-500 uppercase">Properties</h2>
+          <h2 className="text-xs font-medium text-default-500 uppercase">
+            Properties
+          </h2>
         </div>
       )}
 
-      <div className={`flex flex-col ${isCompact ? 'items-center gap-1' : 'gap-1 px-1'}`}>
+      <div
+        className={`flex flex-col ${
+          isCompact ? "items-center gap-1" : "gap-1 px-1"
+        }`}
+      >
         {properties.map((property) => (
           <Tooltip
             key={property.id}
@@ -179,12 +188,22 @@ export function PropertyContext({ isCompact = false }: { isCompact?: boolean }) 
               <Card className="border-none bg-content1 max-w-[300px]">
                 <CardBody className="gap-2">
                   <div>
-                    <p className="font-semibold text-small">{property.address}</p>
-                    <p className="text-small text-default-500">{property.price}</p>
+                    <p className="font-semibold text-small">
+                      {property.address}
+                    </p>
+                    <p className="text-small text-default-500">
+                      {property.price}
+                    </p>
                   </div>
                   <div className="text-tiny">
-                    <p>{property.details.beds} beds • {property.details.baths} baths • {property.details.sqft.toLocaleString()} sqft</p>
-                    <p>Built {property.details.yearBuilt} • {property.details.lotSize}</p>
+                    <p>
+                      {property.details.beds} beds • {property.details.baths}{" "}
+                      baths • {property.details.sqft.toLocaleString()} sqft
+                    </p>
+                    <p>
+                      Built {property.details.yearBuilt} •{" "}
+                      {property.details.lotSize}
+                    </p>
                     <p className="capitalize mt-1">Status: {property.status}</p>
                   </div>
                   <p className="text-tiny text-default-500">
@@ -201,25 +220,31 @@ export function PropertyContext({ isCompact = false }: { isCompact?: boolean }) 
           >
             <Button
               className={`w-full group transition-transform hover:scale-[0.98] ${
-                isCompact ? 'p-0 h-auto min-h-0 max-w-[52px]' : 'p-1 h-auto'
+                isCompact ? "p-0 h-auto min-h-0 max-w-[52px]" : "p-1 h-auto"
               }`}
               variant="light"
               radius="sm"
             >
-              <div className={`flex ${isCompact ? 'justify-center' : 'items-center gap-3'} w-full`}>
+              <div
+                className={`flex ${
+                  isCompact ? "justify-center" : "items-center gap-3"
+                } w-full`}
+              >
                 <Avatar
                   src={property.image}
                   className={`
-                    ${isCompact ? 'w-11 h-11' : 'w-12 h-12'}
+                    ${isCompact ? "w-11 h-11" : "w-12 h-12"}
                     transition-transform group-hover:scale-105
                   `}
                   radius="sm"
                   classNames={{
                     base: `border-2 border-transparent ${
-                      property.status === 'active' ? 'group-data-[hover=true]:border-primary' :
-                      property.status === 'pending' ? 'group-data-[hover=true]:border-warning' :
-                      'group-data-[hover=true]:border-success'
-                    }`
+                      property.status === "active"
+                        ? "group-data-[hover=true]:border-primary"
+                        : property.status === "pending"
+                        ? "group-data-[hover=true]:border-warning"
+                        : "group-data-[hover=true]:border-success"
+                    }`,
                   }}
                 />
                 {!isCompact && (
@@ -228,14 +253,20 @@ export function PropertyContext({ isCompact = false }: { isCompact?: boolean }) 
                       {property.address}
                     </p>
                     <p className="text-xs text-default-500">
-                      {property.price} • {property.details.beds}bd {property.details.baths}ba
+                      {property.price} • {property.details.beds}bd{" "}
+                      {property.details.baths}ba
                     </p>
-                    <span className={`text-[10px] ${
-                      property.status === 'active' ? 'text-primary-500' :
-                      property.status === 'pending' ? 'text-warning-500' :
-                      'text-success-500'
-                    }`}>
-                      {property.status.charAt(0).toUpperCase() + property.status.slice(1)}
+                    <span
+                      className={`text-[10px] ${
+                        property.status === "active"
+                          ? "text-primary-500"
+                          : property.status === "pending"
+                          ? "text-warning-500"
+                          : "text-success-500"
+                      }`}
+                    >
+                      {property.status.charAt(0).toUpperCase() +
+                        property.status.slice(1)}
                     </span>
                   </div>
                 )}
@@ -246,15 +277,12 @@ export function PropertyContext({ isCompact = false }: { isCompact?: boolean }) 
       </div>
 
       {!isCompact && (
-        <Button
-          className="w-full mt-1 mx-1"
-          color="primary"
-          variant="ghost"
-          size="sm"
-        >
-          Add Property
-        </Button>
+        <Link href="/wizard-selector" className="w-full mt-1 mx-1">
+          <Button className="w-full" color="primary" variant="ghost" size="sm">
+            Add Property
+          </Button>
+        </Link>
       )}
     </div>
-  )
+  );
 } 

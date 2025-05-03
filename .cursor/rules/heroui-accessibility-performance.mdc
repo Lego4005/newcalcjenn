@@ -1,0 +1,33 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# HeroUI Accessibility & Performance
+
+HeroUI aims to provide accessible and performant components out-of-the-box.
+
+**Accessibility:**
+
+1.  **Leverage Built-in Compliance:**
+    *   HeroUI components are built with WAI-ARIA standards in mind, providing semantic HTML, keyboard navigation, and focus management.
+    *   Rely on these built-in features.
+2.  **Provide Necessary Labels:**
+    *   Ensure interactive elements have clear, descriptive labels (e.g., using the `label` prop on `Input` or `aria-label` on icon-only buttons).
+3.  **Test with Assistive Technologies:**
+    *   Whenever possible, test critical user flows using keyboard navigation and screen readers to verify usability.
+4.  **Maintain Color Contrast:**
+    *   As mentioned in `heroui-color-usage.mdc`, ensure sufficient contrast, especially when customizing themes.
+
+**Performance:**
+
+1.  **Use Modular Imports (if applicable):**
+    *   While the main `@heroui/react` package is common, if individual component packages (`@heroui/button`, etc.) are used, this can help with tree-shaking and potentially reduce bundle size.
+2.  **Leverage Framework Features:**
+    *   Utilize performance features of your framework (e.g., Next.js automatic static optimization, code splitting, React Suspense for lazy loading).
+3.  **Efficient Styling:**
+    *   HeroUI's reliance on Tailwind CSS (or Stitches historically) promotes efficient styling by generating utility classes, often leading to smaller CSS bundles compared to traditional CSS or some CSS-in-JS libraries.
+4.  **Profile Your Application:**
+    *   Use browser developer tools or React DevTools to profile component rendering times and identify potential bottlenecks unrelated to HeroUI itself.
+
+*Based on Perplexity search results highlighting built-in accessibility, performance considerations, and framework integration.*

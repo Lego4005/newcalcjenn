@@ -1,4 +1,4 @@
-import { Input, Card, CardBody, Tooltip } from '@nextui-org/react';
+import { Input, Card, CardBody, Tooltip } from "@heroui/react";
 import { InfoIcon } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import type { CalculatorFormData } from '../SellerClosingCalculator';

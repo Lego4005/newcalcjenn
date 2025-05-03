@@ -1,0 +1,41 @@
+---
+description: 
+globs: *.tsx
+alwaysApply: false
+---
+# HeroUI Tailwind CSS Configuration
+
+To ensure Tailwind CSS correctly applies styles from HeroUI components and themes, you need to configure your `tailwind.config.js` file:
+
+1.  **Import the Plugin:** Import the `heroui` plugin from `@heroui/react`.
+2.  **Add to Plugins Array:** Include the `heroui()` function call within the `plugins` array.
+3.  **Configure Content Path:** Ensure the `content` array includes a path pointing to the HeroUI theme distribution files within your `node_modules` directory. This allows Tailwind to scan HeroUI's classes.
+
+```javascript
+// tailwind.config.js
+const {heroui} = require("@heroui/react"); // or @heroui/theme if using individual components
+
+/** @type {import('tailwindcss').Config} */
+module.exports = {
+  content: [
+    "./src/pages/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/components/**/*.{js,ts,jsx,tsx,mdx}",
+    "./src/app/**/*.{js,ts,jsx,tsx,mdx}",
+    // Ensure path points to the ROOT node_modules directory
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"
+    // If using individual components, list their theme paths:
+    // "./node_modules/@heroui/theme/dist/components/button.js", 
+    // './node_modules/@heroui/theme/dist/components/(button|snippet|code|input).js'
+  ],
+  theme: {
+    extend: {},
+  },
+  darkMode: "class", // Recommended for HeroUI theming
+  plugins: [
+    heroui()
+    // Optionally configure themes within heroui({ themes: { ... } })
+  ],
+};
+```
+
+*Based on documentation snippets: [Configuring HeroUI Tailwind Plugin](mdc:https:/github.com/heroui-inc/heroui/blob/canary/apps/docs/content/docs/customization/theme.mdx#_snippet_0) and [Configure Tailwind CSS (Individual Manual Install)](mdc:https:/github.com/heroui-inc/heroui/blob/canary/apps/docs/content/docs/guide/installation.mdx#_snippet_13)*
