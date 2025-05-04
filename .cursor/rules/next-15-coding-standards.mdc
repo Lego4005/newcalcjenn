@@ -1,8 +1,9 @@
 ---
-description: 
-globs: 
-alwaysApply: true
+description: Coding standards for Next.js 15 applications using the App Router.
+globs: app/**/*.ts,app/**/*.tsx,src/**/*.ts,src/**/*.tsx,middleware.ts
+alwaysApply: false
 ---
+
 # Next.js 15 Coding Standards
 
 ```

@@ -1,6 +1,6 @@
 ---
-description: 
-globs: 
+description: Guidelines for ensuring accessibility and optimal performance when using HeroUI components.
+globs: **/*.js,**/*.ts,**/*.css,**/*.scss,**/*.jsx,**/*.tsx
 alwaysApply: false
 ---
 # HeroUI Accessibility & Performance

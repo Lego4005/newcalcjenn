@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Card,
   CardBody,
@@ -16,28 +16,20 @@ import {
   Home,
   Calculator,
   History,
-  Plus,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useSearchParams } from "next/navigation";
 import SellerClosingCalculator from "../SellerClosingCosts/SellerClosingCalculator";
-import PropertyPreview from "./PropertyPreview";
-import PropertyKPIs from "./PropertyKPIs";
 import PropertyHistory from "./PropertyHistory";
+import { MapboxMap } from "@/components/Map";
+import { useTheme } from 'next-themes';
+import { searchPropertyByAddress } from "@/lib/rapidapi/zillow56";
+import PropertyDetailsPanel from './PropertyDetailsPanel';
+import BuyerClosingCalculator from '../BuyerClosingCosts/BuyerClosingCalculator';
+import AddressSearchBar from './AddressSearchBar';
+import RentalAnalysisCalculator from '../RentalAnalysis/RentalAnalysisCalculator';
 
-export type Property = {
-  id: string;
-  address: string;
-  price: number;
-  beds: number;
-  baths: number;
-  sqft: number;
-  yearBuilt: number;
-  lotSize: number;
-  propertyType: string;
-  status: "Active" | "Pending" | "Sold";
-  images: string[];
-};
+export type Property = unknown;
 
 const tabVariants = {
   enter: (direction: number) => ({
@@ -57,35 +49,48 @@ const tabVariants = {
 export default function PropertyDashboard() {
   const searchParams = useSearchParams();
   const tabParam = searchParams.get("tab");
-  const [selectedTab, setSelectedTab] = useState("calculator");
-  const [property, setProperty] = useState<Property | null>(
-    // Mock property data - replace with Supabase data
-    {
-      id: "1",
-      address: "123 Main St, Anytown, USA",
-      price: 450000,
-      beds: 3,
-      baths: 2,
-      sqft: 2000,
-      yearBuilt: 2010,
-      lotSize: 5000,
-      propertyType: "Single Family",
-      status: "Active",
-      images: [
-        "https://images.unsplash.com/photo-1600596542815-ffad4c1539a9?q=80&w=2075&auto=format&fit=crop",
-        "https://images.unsplash.com/photo-1600607687939-ce8a6c25118c?q=80&w=2075&auto=format&fit=crop",
-      ],
-    }
-  );
+  const initialAddress = searchParams.get("address");
+  const [selectedTab, setSelectedTab] = useState("buyer_costs");
+  const [property, setProperty] = useState<Property | null>(null);
   const [slideDirection, setSlideDirection] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [mapError, setMapError] = useState<string | null>(null);
+  const { theme } = useTheme();
+
+  const fetchProperty = useCallback(async (address: string) => {
+    setIsLoading(true);
+    setMapError(null);
+    setProperty(null);
+    console.log(`Fetching property for address: ${address}`);
+    try {
+      const data = await searchPropertyByAddress(address);
+      if (data.error) {
+        throw new Error(data.error);
+      }
+      setProperty(data);
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      console.error("Failed to fetch property:", message);
+      setMapError(`Failed to load property data: ${message}`);
+      setProperty(null);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
   useEffect(() => {
-    // Set the tab from URL parameter if available
-    if (tabParam && ["calculator", "property", "history"].includes(tabParam)) {
-      setSelectedTab(tabParam);
+    if (initialAddress) {
+      fetchProperty(initialAddress);
     }
-  }, [tabParam]);
+  }, [initialAddress, fetchProperty]);
+
+  useEffect(() => {
+    if (tabParam && ["seller_costs", "buyer_costs", "rental_analysis", "property", "history"].includes(tabParam)) {
+      setSelectedTab(tabParam);
+    } else if (!tabParam && !initialAddress) {
+      setSelectedTab("buyer_costs");
+    }
+  }, [tabParam, initialAddress]);
 
   const handleTabChange = (key: string) => {
     setSlideDirection(key > selectedTab ? 1 : -1);
@@ -93,21 +98,15 @@ export default function PropertyDashboard() {
   };
 
   const handleShare = () => {
-    // Implement sharing functionality
     console.log("Share clicked");
   };
 
   const handleDownload = () => {
-    // Implement PDF download
     console.log("Download clicked");
   };
 
-  const handleAddProperty = async () => {
-    setIsLoading(true);
-    // Simulate loading
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    // Navigate to wizard selector
-    window.location.href = "/wizard-selector";
+  const handleSearchSubmit = (address: string) => {
+    fetchProperty(address);
   };
 
   const LoadingSpinner = () => (
@@ -128,162 +127,184 @@ export default function PropertyDashboard() {
   );
 
   return (
-    <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full">
-      {/* Left Column - Property Preview & KPIs */}
+    <div className="space-y-6 w-full">
       <motion.div
-        className="xl:col-span-4 space-y-6"
-        initial={{ opacity: 0, x: -20 }}
-        animate={{ opacity: 1, x: 0 }}
+        className="w-full flex justify-center px-4"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.3 }}
       >
-        {property ? (
-          <>
-            <PropertyPreview property={property} />
-            <PropertyKPIs property={property} />
-          </>
-        ) : (
-          <Card className="w-full h-[400px] flex items-center justify-center relative overflow-hidden">
-            <AnimatePresence>{isLoading && <LoadingSpinner />}</AnimatePresence>
-            <CardBody className="text-center">
-              <motion.div
-                className="space-y-4"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2 }}
-              >
-                <motion.div
-                  className="bg-default-100 p-4 rounded-full w-16 h-16 mx-auto flex items-center justify-center"
-                  whileHover={{ scale: 1.1, rotate: 90 }}
-                  whileTap={{ scale: 0.9 }}
-                >
-                  <Plus className="w-8 h-8 text-default-500" />
-                </motion.div>
-                <div>
-                  <h3 className="text-xl font-semibold mb-2">
-                    No Property Selected
-                  </h3>
-                  <p className="text-default-500 mb-4">
-                    Add a property to start calculating closing costs and
-                    analyzing market data.
-                  </p>
-                  <Button
-                    color="primary"
-                    startContent={<Plus className="w-4 h-4" />}
-                    onPress={handleAddProperty}
-                    isLoading={isLoading}
-                  >
-                    Add Property
-                  </Button>
-                </div>
-              </motion.div>
-            </CardBody>
-          </Card>
+         <AddressSearchBar onSearch={handleSearchSubmit} isLoading={isLoading} />
+      </motion.div>
+
+      <motion.div
+        className="h-[400px] md:h-[500px] w-full rounded-lg overflow-hidden relative shadow-lg"
+        initial={{ opacity: 0, y: -20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+      >
+        <MapboxMap 
+          isDarkMode={theme === 'dark'}
+          propertyData={property}
+        />
+        <AnimatePresence>
+          {isLoading && !property && <LoadingSpinner />}
+        </AnimatePresence>
+        {mapError && (
+           <div className="absolute top-2 left-2 bg-danger/80 text-danger-foreground p-2 rounded shadow-md text-sm z-10">
+             {mapError}
+           </div>
         )}
       </motion.div>
 
-      {/* Right Column - Calculator & Tools */}
-      <motion.div
-        className="xl:col-span-8"
-        initial={{ opacity: 0, x: 20 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.3 }}
-      >
-        <Card className="w-full">
-          <CardHeader className="flex flex-col gap-2">
-            <div className="flex justify-between items-center w-full">
-              <h2 className="text-2xl font-bold">Property Analysis</h2>
-              <div className="flex gap-2">
-                <Button
-                  variant="flat"
-                  startContent={<Share2 className="w-4 h-4" />}
-                  onPress={handleShare}
-                >
-                  Share
-                </Button>
-                <Button
-                  variant="flat"
-                  startContent={<Download className="w-4 h-4" />}
-                  onPress={handleDownload}
-                >
-                  Export
-                </Button>
-              </div>
-            </div>
+      <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 w-full">
+        <motion.div
+          className="xl:col-span-4 space-y-6"
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <PropertyDetailsPanel property={property} isLoading={isLoading && !property} />
+          
+            {!isLoading && !property && mapError && (
+              <Card className="w-full h-[100px] flex items-center justify-center">
+                <CardBody className="text-center text-danger">
+                  <p>Could not load property data.</p>
+                  <p className="text-sm">{mapError}</p>
+                </CardBody>
+              </Card>
+            )}
+        </motion.div>
 
-            <Tabs
-              selectedKey={selectedTab}
-              onSelectionChange={(key) => handleTabChange(key.toString())}
-              aria-label="Property Analysis Options"
-              color="primary"
-              variant="underlined"
-              classNames={{
-                tabList: "gap-6",
-                cursor: "w-full",
-              }}
-            >
-              <Tab
-                key="calculator"
-                title={
-                  <div className="flex items-center gap-2">
-                    <Calculator className="w-4 h-4" />
-                    <span>Closing Costs</span>
-                  </div>
-                }
-              />
-              <Tab
-                key="property"
-                title={
-                  <div className="flex items-center gap-2">
-                    <Home className="w-4 h-4" />
-                    <span>Property Details</span>
-                  </div>
-                }
-              />
-              <Tab
-                key="history"
-                title={
-                  <div className="flex items-center gap-2">
-                    <History className="w-4 h-4" />
-                    <span>History</span>
-                  </div>
-                }
-              />
-            </Tabs>
-          </CardHeader>
+        <motion.div
+          className="xl:col-span-8"
+          initial={{ opacity: 0, x: 20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.3, delay: 0.1 }}
+        >
+          <Card className="w-full">
+             <CardHeader className="flex flex-col gap-2">
+               <div className="flex justify-between items-center w-full">
+                 <h2 className="text-2xl font-bold">Property Analysis</h2>
+                 <div className="flex gap-2">
+                   <Button
+                     isIconOnly
+                     variant="flat"
+                     aria-label="Share"
+                     onPress={handleShare}
+                     isDisabled={!property}
+                   >
+                     <Share2 className="w-4 h-4" />
+                   </Button>
+                   <Button
+                     isIconOnly
+                     variant="flat"
+                     aria-label="Download"
+                     onPress={handleDownload}
+                     isDisabled={!property}
+                   >
+                     <Download className="w-4 h-4" />
+                   </Button>
+                 </div>
+               </div>
 
-          <CardBody>
-            <AnimatePresence mode="wait" custom={slideDirection}>
-              <motion.div
-                key={selectedTab}
-                custom={slideDirection}
-                variants={tabVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{
-                  x: { type: "spring", stiffness: 300, damping: 30 },
-                  opacity: { duration: 0.2 },
-                }}
-              >
-                {selectedTab === "calculator" && property && (
-                  <SellerClosingCalculator />
-                )}
-                {selectedTab === "property" && property && (
-                  <div>Property Details Content</div>
-                )}
-                {selectedTab === "history" && property && (
-                  <PropertyHistory property={property} />
-                )}
-                {!property && (
-                  <div className="text-center py-8 text-default-500">
-                    Please add a property to view this section
-                  </div>
-                )}
-              </motion.div>
-            </AnimatePresence>
-          </CardBody>
-        </Card>
-      </motion.div>
+               <Tabs
+                 selectedKey={selectedTab}
+                 onSelectionChange={(key) => handleTabChange(key.toString())}
+                 aria-label="Property Analysis Options"
+                 color="primary"
+                 variant="underlined"
+                 isDisabled={!property}
+                 classNames={{
+                   tabList: "gap-6",
+                   cursor: "w-full",
+                 }}
+               >
+                 <Tab
+                   key="seller_costs"
+                   title={
+                     <div className="flex items-center gap-2">
+                       <Calculator className="w-4 h-4" />
+                       <span>Seller Costs</span>
+                     </div>
+                   }
+                 />
+                 <Tab
+                   key="buyer_costs"
+                   title={
+                     <div className="flex items-center gap-2">
+                       <Calculator className="w-4 h-4" />
+                       <span>Buyer Costs</span>
+                     </div>
+                   }
+                 />
+                 <Tab
+                   key="rental_analysis"
+                   title={
+                     <div className="flex items-center gap-2">
+                       <Home className="w-4 h-4" />
+                       <span>Rental Analysis</span>
+                     </div>
+                   }
+                 />
+                 <Tab
+                   key="property"
+                   title={
+                     <div className="flex items-center gap-2">
+                       <Home className="w-4 h-4" />
+                       <span>Property Details</span>
+                     </div>
+                   }
+                 />
+                 <Tab
+                   key="history"
+                   title={
+                     <div className="flex items-center gap-2">
+                       <History className="w-4 h-4" />
+                       <span>History</span>
+                     </div>
+                   }
+                 />
+               </Tabs>
+             </CardHeader>
+             
+             <CardBody>
+               {!property && !isLoading && (
+                 <div className="text-center py-16 text-default-500">
+                   {mapError ? mapError : "Search for a property using the bar above to view analysis tools."}
+                 </div>
+               )}
+               {isLoading && !property && (
+                 <div className="text-center py-16">
+                   <Spinner label="Loading Analysis Tools..." />
+                 </div>
+               )}
+               {property && (
+                 <AnimatePresence mode="wait" custom={slideDirection}>
+                   <motion.div
+                     key={selectedTab}
+                     custom={slideDirection}
+                     variants={tabVariants}
+                     initial="enter"
+                     animate="center"
+                     exit="exit"
+                     transition={{
+                       x: { type: "spring", stiffness: 300, damping: 30 },
+                       opacity: { duration: 0.2 },
+                     }}
+                   >
+                     {selectedTab === "seller_costs" && <SellerClosingCalculator />}
+                     {selectedTab === "buyer_costs" && <BuyerClosingCalculator />}
+                     {selectedTab === "rental_analysis" && <RentalAnalysisCalculator />}
+                     {selectedTab === "property" && <div>Property Details Content Placeholder</div>}
+                     {selectedTab === "history" && <PropertyHistory property={property} />}
+                   </motion.div>
+                 </AnimatePresence>
+               )}
+             </CardBody>
+          </Card>
+        </motion.div>
+      </div>
     </div>
   );
 }

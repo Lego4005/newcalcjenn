@@ -1,6 +1,6 @@
 ---
 description: Coding Standards & Rules for Supabase with React 18.3.1
-globs: '**/*.tsx, **/*.ts, **/*.jsx, src/supabase/**/*.ts'
+globs: **/*.js,**/*.ts,**/*.css,**/*.scss,**/*.jsx,**/*.tsx
 alwaysApply: false
 ---
 # React 18 with Supabase Integration Standards

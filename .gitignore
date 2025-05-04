@@ -57,10 +57,13 @@ node_modules/
 # OS specific
 # Task files
 tasks.json
-tasks/
+tasks/ 
 
 # Performance profiling data
 perf.data
 
 # Ignore embedded repo in archive
-.archive/memory-bank/ 
+.archive/memory-bank/
+
+# Cursor MCP configuration/cache
+.cursor/mcp.json 

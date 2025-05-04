@@ -1,6 +1,7 @@
 ---
-description: Guidelines for adding features to vanilla JavaScript apps with Supabase Authentication
-globs: '**/*.html, **/*.js'
+description: Guidelines for implementing various Supabase features (Auth, DB, Realtime, etc.) in vanilla JavaScript applications.
+globs: **/*.js,**/*.ts,**/*.css,**/*.scss,**/*.jsx,**/*.tsx
+alwaysApply: false
 ---
 # Supabase JavaScript Feature Guidelines
 

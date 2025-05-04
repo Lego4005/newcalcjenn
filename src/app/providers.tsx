@@ -3,6 +3,7 @@
 import { HeroUIProvider } from "@heroui/react"
 import { ThemeProvider as NextThemesProvider } from "next-themes"
 import { useEffect, useState } from "react"
+import { AuthProvider } from "@/contexts/AuthContext"
 
 export function Providers({ children }: { children: React.ReactNode }) {
   const [mounted, setMounted] = useState(false)
@@ -16,14 +17,16 @@ export function Providers({ children }: { children: React.ReactNode }) {
   }
 
   return (
+    <AuthProvider>
     <HeroUIProvider>
       <NextThemesProvider
         attribute="class"
-        defaultTheme="light"
+        defaultTheme="dark"
         enableSystem={false}
       >
         {children}
       </NextThemesProvider>
     </HeroUIProvider>
+    </AuthProvider>
   )
 } 

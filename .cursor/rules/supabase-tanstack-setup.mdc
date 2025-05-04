@@ -1,6 +1,7 @@
 ---
 description: Guidelines for writing TanStack apps with Supabase Authentication
-globs: '**/*.ts, **/*.tsx, **/*.js, **/*.jsx'
+globs: **/*.js,**/*.ts,**/*.css,**/*.scss,**/*.jsx,**/*.tsx
+alwaysApply: false
 ---
 # Supabase TanStack Setup Guidelines
 # Supabase TanStack Setup Guidelines

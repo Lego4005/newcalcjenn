@@ -1,0 +1,227 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Optimized Frontend Verification Process - Fast Development Mode
+
+## WHEN TO USE THIS RULE:
+- When making small code changes during active development
+- After fixing simple bugs or typos
+- When modifying CSS files
+- During iterative UI development
+- When the assistant needs to quickly verify changes
+- AFTER using the full verification process at least once in a session
+
+## DO NOT USE THIS FOR:
+- Initial project setup
+- After major refactoring
+- When package.json is modified
+- After changing configuration files
+- First verification of a new session
+
+## PROCESS:
+
+### Step 1: Quick Server Health Check
+```javascript
+// Check if server is responding (NO LONG TIMEOUTS)
+const serverStatus = await mcp_desktop_commander_execute_command('curl -s -o /dev/null -w "%{http_code}" http://localhost:4000');
+
+// If server not responding, try hot reload FIRST
+if (serverStatus !== "200") {
+  console.log('Server not responding, attempting hot reload...');
+  await mcp_desktop_commander_execute_command('touch /path/to/project/pages/_app.tsx');
+  await new Promise(resolve => setTimeout(resolve, 1000)); // MAX 1 second wait
+  
+  // Recheck after hot reload
+  const secondCheck = await mcp_desktop_commander_execute_command('curl -s -o /dev/null -w "%{http_code}" http://localhost:4000');
+  
+  if (secondCheck !== "200") {
+    console.log('Hot reload failed, switching to FULL VERIFICATION PROCESS');
+    // MUST switch to full verification rule
+    return 'FALLBACK_TO_FULL_VERIFICATION';
+  }
+}
+```
+
+### Step 2: Quick Browser Error Detection
+```javascript
+// Navigate without screenshot unless errors found
+await mcp_puppeteer_puppeteer_navigate('http://localhost:4000');
+
+// Quick error check - looking for obvious problems only
+const hasErrors = await mcp_puppeteer_puppeteer_evaluate(`
+  document.body.innerText.includes('Error') || 
+  document.body.innerText.includes('failed') ||
+  document.body.innerText.includes('Module not found') ||
+  document.querySelector('[data-nextjs-error]') !== null
+`);
+
+if (hasErrors) {
+  console.log('Errors detected, starting diagnosis...');
+  // Go to Step 3: Error Diagnosis
+} else {
+  console.log('✓ Quick verification PASSED');
+  return { status: 'PASSED', mode: 'quick' };
+}
+```
+
+### Step 3: Error Diagnosis (Only if errors detected)
+```javascript
+const diagnosis = await mcp_puppeteer_puppeteer_evaluate(`
+  (function() {
+    const fullText = document.body.innerText;
+    const errors = [];
+    
+    // Check for missing module errors
+    if (fullText.includes("Module not found")) {
+      const match = fullText.match(/Module not found: Can't resolve '([^']+)'/);
+      if (match) {
+        errors.push({
+          type: 'MISSING_MODULE',
+          module: match[1],
+          solution: 'npm install'
+        });
+      }
+    }
+    
+    // Check for syntax errors
+    if (fullText.includes("SyntaxError")) {
+      const lineMatch = fullText.match(/SyntaxError.*?:(\\d+):(\\d+)/);
+      errors.push({
+        type: 'SYNTAX_ERROR',
+        location: lineMatch ? lineMatch[0] : 'unknown',
+        solution: 'prettier'
+      });
+    }
+    
+    // Check for undefined errors
+    if (fullText.includes("TypeError") && fullText.includes("undefined")) {
+      errors.push({
+        type: 'UNDEFINED_ERROR',
+        solution: 'check_imports'
+      });
+    }
+    
+    // Check for import errors
+    if (fullText.includes("Cannot find module")) {
+      const moduleMatch = fullText.match(/Cannot find module '([^']+)'/);
+      if (moduleMatch) {
+        errors.push({
+          type: 'IMPORT_ERROR',
+          module: moduleMatch[1],
+          solution: 'check_imports'
+        });
+      }
+    }
+    
+    return errors;
+  })()
+`);
+```
+
+### Step 4: Auto-Fix Attempts (Based on diagnosis)
+```javascript
+// Try to fix each diagnosed error
+for (const error of diagnosis) {
+  switch (error.type) {
+    case 'MISSING_MODULE':
+      console.log(`Auto-fixing: Installing missing module '${error.module}'`);
+      await mcp_desktop_commander_execute_command(
+        `cd /path/to/project && npm install ${error.module}`
+      );
+      break;
+      
+    case 'SYNTAX_ERROR':
+      console.log('Auto-fixing: Running prettier to fix syntax');
+      await mcp_desktop_commander_execute_command(
+        'cd /path/to/project && npx prettier --write .'
+      );
+      break;
+      
+    case 'UNDEFINED_ERROR':
+    case 'IMPORT_ERROR':
+      console.log('Cannot auto-fix import issues, manual intervention needed');
+      break;
+  }
+}
+
+// Wait briefly for fixes to take effect
+await new Promise(resolve => setTimeout(resolve, 2000));
+
+// Re-run quick verification
+return await quickVerification(); // Go back to Step 1
+```
+
+### Step 5: Report Results
+```javascript
+// If auto-fix worked:
+console.log('✓ Quick verification PASSED after auto-fix');
+return { 
+  status: 'PASSED', 
+  mode: 'quick',
+  fixes_applied: diagnosis.map(d => d.type)
+};
+
+// If auto-fix failed:
+console.log('❌ Quick verification FAILED - manual intervention required');
+return {
+  status: 'FAILED',
+  mode: 'quick',
+  errors: diagnosis,
+  action_required: 'Manual fixes needed'
+};
+```
+
+## ENFORCEMENT RULES:
+
+1. **MUST use this process for minor changes during active development**
+2. **MUST fall back to full verification if server restart is needed**
+3. **MUST NOT use this for initial setup or major changes**
+4. **MUST attempt hot reload before server restart**
+5. **MUST complete in under 10 seconds for success cases**
+6. **MUST diagnose specific errors before attempting fixes**
+7. **MUST report all fixes attempted**
+
+## FALLBACK CONDITIONS:
+
+Switch to FULL VERIFICATION PROCESS if:
+- Server doesn't respond after hot reload
+- More than 3 errors detected
+- Package.json was modified
+- Configuration files changed
+- First verification of a session
+- Auto-fix attempts fail twice
+
+## SUCCESS CRITERIA:
+
+Quick verification PASSES when:
+- Server responds with 200
+- No error text detected in browser
+- No error overlays visible
+- Process completes in under 10 seconds
+
+## EXAMPLE USAGE:
+
+```
+// After fixing a typo in a component:
+Quick verification starting...
+✓ Server responding (200)
+✓ No errors detected in browser
+✓ Quick verification PASSED
+
+// After removing an import accidentally:
+Quick verification starting...
+⚠️ Errors detected, starting diagnosis...
+Found: UNDEFINED_ERROR in MyComponent.tsx
+Auto-fixing: Checking imports...
+Cannot auto-fix import issues, manual intervention needed
+❌ Quick verification FAILED - manual intervention required
+```
+
+## WHEN TO ALERT USER:
+
+- When falling back to full verification
+- When auto-fix attempts fail
+- When manual intervention is required
+- When process takes longer than 10 seconds

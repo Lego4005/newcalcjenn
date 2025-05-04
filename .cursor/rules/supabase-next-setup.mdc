@@ -1,6 +1,6 @@
 ---
-description: Guidelines for writing Next.js apps with Supabase Authentication
-globs: '**/*.ts, **/*.tsx, **/*.js, **/*.jsx'
+description: Setup guide for bootstrapping a Next.js application with Supabase authentication using Auth Helpers.
+globs: **/*.js,**/*.ts,**/*.css,**/*.scss,**/*.jsx,**/*.tsx
 alwaysApply: false
 ---
 # Supabase Next.js Setup Guidelines

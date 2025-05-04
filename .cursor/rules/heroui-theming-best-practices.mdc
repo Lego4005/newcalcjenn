@@ -1,6 +1,6 @@
 ---
-description: 
-globs: *.tsx
+description: Best practices for defining and applying themes in HeroUI using Tailwind CSS configuration.
+globs: **/*.js,**/*.ts,**/*.css,**/*.scss,**/*.jsx,**/*.tsx
 alwaysApply: false
 ---
 # HeroUI Theming Best Practices

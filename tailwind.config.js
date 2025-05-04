@@ -5,7 +5,7 @@ module.exports = {
   darkMode: ["class"],
   content: [
     "./src/**/*.{js,ts,jsx,tsx}",
-    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}"
+    "./node_modules/@heroui/theme/dist/**/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {
@@ -39,7 +39,7 @@ module.exports = {
             content4: "#E9ECEF",
             default: {
               50: "#F8F9FA",
-              100: "#F1F3F5", 
+              100: "#F1F3F5",
               200: "#E9ECEF",
               300: "#DEE2E6",
               400: "#CED4DA",
@@ -68,9 +68,9 @@ module.exports = {
         },
         dark: {
           colors: {
-            background: "#000000",
+            background: "#1d1f20",
             foreground: "#ECEDEE",
-            content1: "#111111",
+            content1: "#26282c",
             content2: "#191919",
             content3: "#222222",
             content4: "#2D2D2D",
@@ -88,7 +88,7 @@ module.exports = {
             },
             primary: {
               50: "#EFF6FF",
-              100: "#DBEAFE", 
+              100: "#DBEAFE",
               200: "#BFDBFE",
               300: "#93C5FD",
               400: "#60A5FA",
@@ -106,4 +106,4 @@ module.exports = {
       },
     }),
   ],
-} 
+};

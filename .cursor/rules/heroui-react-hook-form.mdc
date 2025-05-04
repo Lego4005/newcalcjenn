@@ -1,6 +1,6 @@
 ---
-description: 
-globs: *.tsx
+description: Standard method for integrating HeroUI form components with React Hook Form using the Controller component.
+globs: **/*.js,**/*.ts,**/*.css,**/*.scss,**/*.jsx,**/*.tsx
 alwaysApply: false
 ---
 # HeroUI Integration with React Hook Form

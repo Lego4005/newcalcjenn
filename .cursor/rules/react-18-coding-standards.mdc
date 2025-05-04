@@ -1,7 +1,7 @@
 ---
-description: 
-globs: 
-alwaysApply: true
+description: Coding standards for React 18.3.1 applications, emphasizing functional components, hooks, and performance.
+globs: **/*.js,**/*.ts,**/*.jsx,**/*.tsx,**/*.css,**/*.scss
+alwaysApply: false
 ---
 # React 18 Coding Standards
 

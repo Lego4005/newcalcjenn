@@ -1,6 +1,6 @@
 ---
-description: Coding standards and best practices for vanilla JavaScript apps with Supabase Authentication
-globs: '**/*.html, **/*.js'
+description: Coding standards and best practices for implementing Supabase authentication in vanilla JavaScript applications.
+globs: **/*.js,**/*.ts,**/*.css,**/*.scss,**/*.jsx,**/*.tsx
 alwaysApply: false
 ---
 # Supabase JavaScript Coding Standards

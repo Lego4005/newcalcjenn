@@ -1,7 +1,7 @@
 ---
-description: 
-globs: 
-alwaysApply: true
+description: Guide for setting up HeroUIProvider in Next.js App Router projects
+globs: **/*.js,**/*.ts,**/*.css,**/*.scss,**/*.jsx,**/*.tsx
+alwaysApply: false
 ---
 # HeroUI Provider Setup (Next.js App Router)
 

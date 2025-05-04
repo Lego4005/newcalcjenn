@@ -1,58 +1,394 @@
 ---
 description: 
 globs: 
-alwaysApply: true
+alwaysApply: false
 ---
-# Front-End Verification Process with Puppeteer (MCP Tools)
+# Frontend Verification Process - MUST DETECT ALL ERRORS
 
-When proposing or making changes to front-end components or pages, follow this process using the available Puppeteer tools (prefixed with `mcp_puppeteer_`) to proactively identify potential issues before considering the task complete.
+## CRITICAL: The assistant MUST detect and report ALL compilation errors
 
-The goal is to verify that the changes work as expected without introducing runtime errors, rendering problems, or interaction failures.
+### Step 1: Check Dev Server Status and Ensure Running Server
+```javascript
+// Check if dev server is running
+const portCheck = await mcp_desktop_commander_execute_command('lsof -i :4000');
+let serverWasRestarted = false;
 
-## Verification Steps & Tools:
+// If something is already on port 4000, check its health
+if (portCheck.includes(':4000')) {
+  console.log('Dev server detected on port 4000 - checking health...');
+  
+  // Attempt to verify server health
+  try {
+    const healthCheck = await mcp_desktop_commander_execute_command('curl -s -o /dev/null -w "%{http_code}" http://localhost:4000');
+    
+    // Check if server is responding with errors
+    if (healthCheck !== "200") {
+      console.log('⚠️ Existing server appears unhealthy - will restart');
+      
+      // Kill the unhealthy server
+      await mcp_desktop_commander_execute_command('kill -9 $(lsof -t -i:4000)');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      // IMMEDIATELY START A NEW SERVER
+      console.log('Starting fresh dev server...');
+      await mcp_desktop_commander_execute_command('cd /path/to/project && npm run dev 2>&1 | tee dev-server.log &');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      serverWasRestarted = true;
+      
+    } else {
+      // Even if 200, check for content health
+      const contentCheck = await mcp_desktop_commander_execute_command('curl -s http://localhost:4000');
+      if (contentCheck.includes('Error') || contentCheck.includes('failed') || contentCheck.includes('Module not found')) {
+        console.log('⚠️ Server responding but content has errors - will restart');
+        
+        // Kill and immediately restart
+        await mcp_desktop_commander_execute_command('kill -9 $(lsof -t -i:4000)');
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        console.log('Starting fresh dev server...');
+        await mcp_desktop_commander_execute_command('cd /path/to/project && npm run dev 2>&1 | tee dev-server.log &');
+        await new Promise(resolve => setTimeout(resolve, 5000));
+        serverWasRestarted = true;
+      } else {
+        console.log('✓ Existing server appears healthy');
+      }
+    }
+  } catch (error) {
+    console.log('⚠️ Server health check failed - will restart');
+    // Kill the unresponsive server
+    await mcp_desktop_commander_execute_command('kill -9 $(lsof -t -i:4000)');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Start fresh server
+    console.log('Starting fresh dev server...');
+    await mcp_desktop_commander_execute_command('cd /path/to/project && npm run dev 2>&1 | tee dev-server.log &');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    serverWasRestarted = true;
+  }
+} else {
+  console.log('No dev server running - starting fresh');
+  await mcp_desktop_commander_execute_command('cd /path/to/project && npm run dev 2>&1 | tee dev-server.log &');
+  await new Promise(resolve => setTimeout(resolve, 5000));
+  serverWasRestarted = true;
+}
 
-1.  **Navigate to the Target Page:**
-    *   **Tool:** `mcp_puppeteer_puppeteer_navigate(url=...)`
-    *   **Purpose:** Load the specific page or route affected by the changes (e.g., `http://localhost:3000/component-viewer`).
-    *   **Verification:** Ensure navigation completes successfully without errors or timeouts. Check for a successful HTTP status (e.g., 200).
+// Verify server is now running before proceeding
+const finalPortCheck = await mcp_desktop_commander_execute_command('lsof -i :4000');
+if (!finalPortCheck.includes(':4000')) {
+  console.log('❌ CRITICAL ERROR: Server failed to start');
+  return {
+    status: 'SERVER_START_FAILED',
+    message: 'Development server failed to start on port 4000',
+    action: 'Check project setup and dependencies'
+  };
+}
+```
 
-2.  **Check for Console Errors:**
-    *   **Tool:** *Note: There isn't a direct MCP tool to listen for console errors like `page.on('console')`. This step requires manual observation or inferring errors based on component behavior or other tool failures.*
-    *   **Purpose:** Identify JavaScript runtime errors logged during page load or interaction.
-    *   **Verification:** Manually check the browser console after navigation and interaction, or deduce errors if subsequent steps fail unexpectedly. Aim for zero `console.error` messages related to the component.
+### Step 2: Read Server Output for Errors
+```javascript
+// Read server output for errors
+const serverOutput = await mcp_desktop_commander_execute_command('cat dev-server.log 2>/dev/null || echo "No server log"');
 
-3.  **Check for Page Errors:**
-    *   **Tool:** *Note: There isn't a direct MCP tool to listen for page errors like `page.on('pageerror')`. Similar to console errors, this relies on observation or inference.*
-    *   **Purpose:** Catch uncaught exceptions in the page's JavaScript context.
-    *   **Verification:** Observe the page for crash indicators or infer critical failures if subsequent steps fail. Aim for zero uncaught exceptions.
+// Check for compilation errors in terminal output
+if (serverOutput.includes('Module not found') || 
+    serverOutput.includes('Failed to compile') ||
+    serverOutput.includes('Error:')) {
+  return {
+    status: 'COMPILATION_ERROR',
+    message: serverOutput,
+    action: 'Fix errors shown in terminal output'
+  };
+}
+```
 
-4.  **Verify Element Presence & Visibility:**
-    *   **Tools:**
-        *   `mcp_puppeteer_puppeteer_evaluate(script=...)` with JavaScript like `document.querySelector(...)` or `document.querySelectorAll(...)`.
-        *   `mcp_puppeteer_puppeteer_screenshot(name=..., selector=...)` to visually confirm or target specific elements.
-    *   **Purpose:** Confirm that key elements of the modified component(s) are rendered in the DOM.
-    *   **Verification:** Use `evaluate` to check if selectors for essential parts of the component return elements. Use `screenshot` (potentially with a `selector`) to visually confirm the component or its parts are rendered as expected. Ensure necessary elements exist.
+### Step 3: Browser Verification with Recovery
+```javascript
+let navigationSuccess = false;
+let retryCount = 0;
+const maxRetries = 3;
 
-5.  **Simulate User Interactions (If Applicable):**
-    *   **Tools:**
-        *   `mcp_puppeteer_puppeteer_click(selector=...)`
-        *   `mcp_puppeteer_puppeteer_fill(selector=..., value=...)`
-        *   `mcp_puppeteer_puppeteer_select(selector=..., value=...)`
-        *   `mcp_puppeteer_puppeteer_hover(selector=...)`
-    *   **Purpose:** Test interactive elements modified or added by the change.
-    *   **Verification:** Simulate the relevant user action (e.g., click a button, fill a form). After the action, repeat step 4 (element checks) and potentially step 6 (screenshot) to verify the expected outcome occurred (e.g., state changed, new content appeared, form submitted) without causing new errors (steps 2 & 3).
+while (!navigationSuccess && retryCount < maxRetries) {
+  try {
+    await mcp_puppeteer_puppeteer_navigate('http://localhost:4000');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+    navigationSuccess = true;
+  } catch (error) {
+    retryCount++;
+    console.log(`Navigation attempt ${retryCount} failed: ${error.message}`);
+    
+    if (retryCount < maxRetries) {
+      console.log('Attempting server recovery...');
+      // Kill and restart the server
+      await mcp_desktop_commander_execute_command('kill -9 $(lsof -t -i:4000)');
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      await mcp_desktop_commander_execute_command('cd /path/to/project && npm run dev 2>&1 | tee dev-server.log &');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      serverWasRestarted = true;
+    }
+  }
+}
 
-6.  **Capture Screenshots for Visual Review:**
-    *   **Tool:** `mcp_puppeteer_puppeteer_screenshot(name=...)`
-    *   **Purpose:** Provide visual evidence of the component's state before/after changes or interactions.
-    *   **Verification:** Capture screenshots at key points. While I cannot perform visual regression testing, these screenshots help the user visually confirm the changes look correct and no unintended layout shifts occurred.
+if (!navigationSuccess) {
+  return {
+    status: 'NAVIGATION_FAILED',
+    message: 'Unable to connect to development server after multiple attempts',
+    action: 'Check server logs and network configuration'
+  };
+}
 
-## Workflow:
+await mcp_puppeteer_puppeteer_screenshot('compilation-check');
+```
 
-1.  **Identify** the component/page affected by the code change.
-2.  **Determine** the relevant interactions to test (if any).
-3.  **Execute** the verification steps using the MCP Puppeteer tools.
-4.  **Analyze** the results: Check for errors, missing elements, incorrect states, or visual regressions (based on screenshots).
-5.  **Attempt Fixes:** If verification fails (errors found, unexpected behavior), try to diagnose and fix the issue based on the results.
-6.  **Repeat** verification after applying fixes.
-7.  **Report:** Once verification passes, report completion to the user. If a fix cannot be determined or requires user input, ask clarifying questions detailing the failure encountered during verification.
+### Step 4: Force Error Detection
+```javascript
+const errorCheck = await mcp_puppeteer_puppeteer_evaluate(`
+  (function() {
+    // Get ALL text content from the page
+    const fullPageText = document.documentElement.innerText;
+    const errors = [];
+    
+    // MUST check for these specific error patterns
+    const errorPatterns = [
+      'Failed to compile',
+      'Module not found',
+      'Cannot resolve',
+      'SyntaxError',
+      'TypeError',
+      'Error:',
+      'webpack',
+      'Build Error',
+      'Unhandled Runtime Error',
+      'Hydration failed'
+    ];
+    
+    // Check if any error pattern exists in the page
+    errorPatterns.forEach(pattern => {
+      if (fullPageText.includes(pattern)) {
+        // Find the specific error message
+        const lines = fullPageText.split('\\n');
+        const errorLines = lines.filter(line => line.includes(pattern));
+        
+        errors.push({
+          type: 'COMPILATION_ERROR',
+          pattern: pattern,
+          message: errorLines.join('\\n'),
+          fullContext: lines.slice(
+            Math.max(0, lines.indexOf(errorLines[0]) - 2),
+            Math.min(lines.length, lines.indexOf(errorLines[0]) + 5)
+          ).join('\\n')
+        });
+      }
+    });
+    
+    // Also check for error overlays
+    const errorOverlay = document.querySelector('[style*="background-color: rgb(206, 17, 38)"]');
+    if (errorOverlay) {
+      errors.push({
+        type: 'ERROR_OVERLAY',
+        message: errorOverlay.innerText
+      });
+    }
+    
+    // Check for Next.js specific error elements
+    const nextError = document.querySelector('[data-nextjs-error]');
+    if (nextError) {
+      errors.push({
+        type: 'NEXTJS_ERROR',
+        message: nextError.innerText
+      });
+    }
+    
+    return {
+      hasErrors: errors.length > 0,
+      errors: errors,
+      fullPageText: fullPageText.substring(0, 1000)
+    };
+  })()
+`);
+```
+
+### Step 5: Screenshot Analysis (MANDATORY)
+```javascript
+// Save screenshot for analysis
+await mcp_desktop_commander_execute_command('mkdir -p /tmp/verification-screenshots');
+await mcp_desktop_commander_execute_command('cp compilation-check.png /tmp/verification-screenshots/');
+
+// The assistant MUST analyze the screenshot for visible errors
+console.log("MANDATORY: Analyze the screenshot 'compilation-check' for visible errors");
+console.log("Look for: Build Error, Failed to compile, Module not found, Red error overlays");
+console.log("If ANY error text is visible, mark verification as FAILED");
+
+// Screenshot Review Protocol:
+// 1. The assistant MUST describe what it sees in the screenshot
+// 2. The assistant MUST list any error messages word-for-word  
+// 3. The assistant MUST report if it sees:
+//    - Error overlays (usually with red backgrounds)
+//    - Compilation error messages
+//    - Stack traces
+//    - Any text containing "Error", "Failed", or "not found"
+```
+
+### Step 6: Combined Error Analysis with Recovery Options
+```javascript
+// Check server output, browser errors, AND screenshot analysis
+const hasServerErrors = serverOutput !== "No server log" && (
+                       serverOutput.includes('Module not found') || 
+                       serverOutput.includes('Failed to compile'));
+const hasBrowserErrors = errorCheck.hasErrors;
+const hasVisualErrors = /* Result from screenshot analysis */;
+
+if (hasServerErrors || hasBrowserErrors || hasVisualErrors) {
+  console.log('🚨 COMPILATION ERRORS DETECTED');
+  
+  // Attempt automatic recovery for common issues
+  const recoveryAttempted = await attemptErrorRecovery(errorCheck.errors);
+  
+  if (!recoveryAttempted.success) {
+    if (hasServerErrors) {
+      console.log('SERVER ERRORS:');
+      console.log(serverOutput);
+    }
+    
+    if (hasBrowserErrors) {
+      console.log('BROWSER ERRORS:');
+      errorCheck.errors.forEach(error => {
+        console.log(`ERROR TYPE: ${error.type}`);
+        console.log(`MESSAGE: ${error.message}`);
+        console.log('------------------------');
+      });
+    }
+    
+    if (hasVisualErrors) {
+      console.log('VISUAL ERRORS IN SCREENSHOT:');
+      console.log('The screenshot shows compilation errors');
+    }
+    
+    return {
+      status: 'FAILED',
+      serverErrors: hasServerErrors ? serverOutput : null,
+      browserErrors: errorCheck.errors,
+      visualErrors: hasVisualErrors,
+      screenshot: 'compilation-check',
+      recoveryAttempted: recoveryAttempted.actions,
+      action_required: 'Fix compilation errors before proceeding'
+    };
+  }
+}
+```
+
+### Step 7: Error Recovery Functions
+```javascript
+async function attemptErrorRecovery(errors) {
+  const recoveryActions = [];
+  let recovered = false;
+  
+  for (const error of errors) {
+    // Module not found errors
+    if (error.message.includes('Module not found')) {
+      const moduleMatch = error.message.match(/Can't resolve '([^']+)'/);
+      if (moduleMatch) {
+        const moduleName = moduleMatch[1];
+        console.log(`Attempting to install missing module: ${moduleName}`);
+        recoveryActions.push(`npm install ${moduleName}`);
+        
+        // Attempt to install the missing module
+        const installResult = await mcp_desktop_commander_execute_command(`cd /path/to/project && npm install ${moduleName}`);
+        
+        if (installResult.includes('added')) {
+          console.log(`✓ Successfully installed ${moduleName}`);
+          recovered = true;
+        }
+      }
+    }
+    
+    // Syntax errors - attempt prettier fix
+    if (error.type === 'SyntaxError') {
+      console.log('Attempting to fix syntax errors with prettier...');
+      recoveryActions.push('npx prettier --write .');
+      await mcp_desktop_commander_execute_command('cd /path/to/project && npx prettier --write .');
+    }
+  }
+  
+  if (recovered) {
+    console.log('Recovery actions taken - restarting server...');
+    await mcp_desktop_commander_execute_command('kill -9 $(lsof -t -i:4000)');
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    await mcp_desktop_commander_execute_command('cd /path/to/project && npm run dev 2>&1 | tee dev-server.log &');
+    await new Promise(resolve => setTimeout(resolve, 5000));
+  }
+  
+  return {
+    success: recovered,
+    actions: recoveryActions
+  };
+}
+```
+
+### Step 8: Cleanup
+```javascript
+// Only kill server if it was started by this verification process
+if (serverWasRestarted) {
+  console.log('Cleaning up server started during verification...');
+  await mcp_desktop_commander_execute_command('kill $(lsof -t -i:4000)');
+}
+```
+
+### ENFORCEMENT RULES:
+1. The assistant MUST check server output using desktop-commander
+2. If compilation errors exist in server output, verification MUST fail
+3. If screenshots show errors, verification MUST fail  
+4. The assistant must provide specific error messages from all sources
+5. The assistant cannot proceed past verification if errors exist
+6. Screenshot analysis is MANDATORY - visual errors override automated checks
+7. Unhealthy or unresponsive servers will be killed and immediately restarted
+8. Recovery attempts will be made for common errors before failing
+9. Server must be verified as running before attempting navigation
+
+### Example Error Report:
+```
+🚨 Frontend Verification FAILED
+--------------------------------
+SERVER COMPILATION ERROR DETECTED:
+
+From terminal output:
+Module not found: Can't resolve 'mapbox-gl'
+  ./src/components/Map.tsx:4:1
+
+VISUAL ERROR DETECTED:
+Screenshot shows: "Build Error - Failed to compile"
+Error message visible: "Module not found: Can't resolve 'mapbox-gl'"
+
+RECOVERY ATTEMPTED:
+✓ Attempted to install missing module: mapbox-gl
+✗ Installation failed - manual intervention required
+
+Required Action:
+1. Install missing package: npm install mapbox-gl
+2. Fix import statement
+3. Re-run verification
+
+Status: BLOCKED - Cannot proceed until errors are resolved
+```
+
+### Screenshot Analysis Protocol:
+When analyzing screenshots, the assistant MUST:
+1. Describe the overall appearance
+2. Identify any error overlays or red banners
+3. Read and report all visible error text
+4. Note file paths and line numbers if visible
+5. Report specific error messages like "Module not found"
+6. Conclude whether compilation errors are present
+
+Example analysis:
+```
+Screenshot Analysis for 'compilation-check':
+- Dark overlay with red accent bar at top
+- Text "Build Error" visible
+- Text "Failed to compile" visible  
+- Error message: "Module not found: Can't resolve 'mapbox-gl'"
+- File location: "./src/components/Map.tsx:4:1"
+- Red error indicator on line 4
+
+Conclusion: COMPILATION ERROR DETECTED
+Status: FAILED
+```

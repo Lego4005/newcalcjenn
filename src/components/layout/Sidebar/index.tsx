@@ -14,33 +14,33 @@ interface SidebarProps {
 }
 
 export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
-  const toggleSidebar = () => {
+  const toggleSidebarLocal = () => {
     onCollapse(!isCollapsed)
     localStorage.setItem('sidebarCollapsed', String(!isCollapsed))
   }
 
+  const sidebarClasses = `fixed top-0 left-0 h-screen bg-background/80 dark:bg-[#1a1a1a] backdrop-blur-xl border-r border-divider transition-all duration-300 shadow-lg z-40 rounded-tr-2xl rounded-br-2xl`;
+
+  const cleanedSidebarClasses = `h-full bg-background/80 dark:bg-[#1a1a1a] backdrop-blur-xl border-r border-divider transition-all duration-300 shadow-lg z-40 rounded-tr-2xl rounded-br-2xl overflow-hidden`;
+
   return (
-    <aside
-      className={`fixed top-0 left-0 h-screen bg-background/80 dark:bg-black/90 backdrop-blur-xl border-r border-divider transition-all duration-300 ${
-        isCollapsed ? "w-20" : "w-72"
-      }`}
-    >
+    <aside className={cleanedSidebarClasses}>
       <div className="flex flex-col h-full">
-        <div className="relative">
+        <div className="relative px-2 py-4">
           <Image
             src={isCollapsed ? "/roca-logo-small.png" : "/roca-logo.png"}
             alt="Roca Logo"
             width={isCollapsed ? 48 : 160}
             height={isCollapsed ? 48 : 64}
-            className="dark:invert"
+            className="dark:invert mx-auto"
             priority
           />
           <Button
             isIconOnly
             variant="light"
-            className="text-default-500 data-[hover]:bg-default-100 absolute top-2 right-2"
+            className="text-default-500 data-[hover]:bg-default-100 absolute top-1/2 -translate-y-1/2 right-2"
             radius="full"
-            onClick={toggleSidebar}
+            onClick={toggleSidebarLocal}
           >
             <ChevronLeft
               className={`w-4 h-4 transition-transform duration-300 ${
@@ -50,7 +50,7 @@ export function Sidebar({ isCollapsed, onCollapse }: SidebarProps) {
           </Button>
         </div>
 
-        <div className="flex-1 px-2 py-4">
+        <div className="flex-1 px-2 py-4 overflow-y-auto">
           <Navigation isCollapsed={isCollapsed} />
 
           <div className="mt-6">

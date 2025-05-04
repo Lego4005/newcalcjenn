@@ -1,6 +1,6 @@
 ---
-description: Guidelines for writing vanilla JavaScript apps with Supabase Authentication
-globs: '**/*.html, **/*.js'
+description: Setup guide for bootstrapping a vanilla JavaScript application with Supabase authentication.
+globs: **/*.js,**/*.ts,**/*.css,**/*.scss,**/*.jsx,**/*.tsx
 alwaysApply: false
 ---
 # Supabase JavaScript Setup Guidelines
